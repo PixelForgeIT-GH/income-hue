@@ -8,7 +8,7 @@ import { ExpenseData } from "@/components/expenses/ExpenseItem";
 
 interface ExpenseFormProps {
   expense?: ExpenseData;
-  onSubmit: (expense: Omit<ExpenseData, "id"> & { id?: string }) => void;
+  onSubmit: (expense: Omit<ExpenseData, "id"> & { id?: string }) => Promise<{ error: any } | undefined>;
   onCancel: () => void;
 }
 
@@ -16,20 +16,34 @@ export const ExpenseForm = ({ expense, onSubmit, onCancel }: ExpenseFormProps) =
   const [name, setName] = useState(expense?.name || "");
   const [amount, setAmount] = useState(expense?.amount?.toString() || "");
   const [frequency, setFrequency] = useState<"weekly" | "monthly" | "yearly">(expense?.frequency || "monthly");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name.trim() || !amount || isNaN(Number(amount))) {
       return;
     }
 
-    onSubmit({
+    setLoading(true);
+    
+    const result = await onSubmit({
       id: expense?.id,
       name: name.trim(),
       amount: Number(amount),
       frequency,
     });
+    
+    if (!result?.error) {
+      // Reset form on success for new expenses
+      if (!expense) {
+        setName("");
+        setAmount("");
+        setFrequency("monthly");
+      }
+    }
+    
+    setLoading(false);
   };
 
   return (
@@ -90,8 +104,9 @@ export const ExpenseForm = ({ expense, onSubmit, onCancel }: ExpenseFormProps) =
           <Button 
             type="submit" 
             className="flex-1 bg-gradient-secondary hover:opacity-90 text-secondary-foreground font-medium"
+            disabled={loading}
           >
-            {expense ? "Update" : "Add"} Expense
+            {loading ? "Processing..." : (expense ? "Update Expense" : "Add Expense")}
           </Button>
           <Button 
             type="button" 

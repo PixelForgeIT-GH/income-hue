@@ -8,7 +8,7 @@ import { IncomeStreamData } from "@/components/income/IncomeStream";
 
 interface IncomeStreamFormProps {
   stream?: IncomeStreamData;
-  onSubmit: (stream: Omit<IncomeStreamData, "id"> & { id?: string }) => void;
+  onSubmit: (stream: Omit<IncomeStreamData, "id"> & { id?: string }) => Promise<{ error: any } | undefined>;
   onCancel: () => void;
 }
 
@@ -19,21 +19,36 @@ export const IncomeStreamForm = ({ stream, onSubmit, onCancel }: IncomeStreamFor
   const [lastPaidDate, setLastPaidDate] = useState(
     stream?.lastPaidDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]
   );
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!name.trim() || !amount || isNaN(Number(amount))) {
       return;
     }
 
-    onSubmit({
+    setLoading(true);
+    
+    const result = await onSubmit({
       id: stream?.id,
       name: name.trim(),
       amount: Number(amount),
       frequency,
       lastPaidDate: new Date(lastPaidDate),
     });
+    
+    if (!result?.error) {
+      // Reset form on success
+      if (!stream) {
+        setName("");
+        setAmount("");
+        setFrequency("monthly");
+        setLastPaidDate(new Date().toISOString().split('T')[0]);
+      }
+    }
+    
+    setLoading(false);
   };
 
   return (
@@ -108,8 +123,9 @@ export const IncomeStreamForm = ({ stream, onSubmit, onCancel }: IncomeStreamFor
           <Button 
             type="submit" 
             className="flex-1 bg-gradient-primary hover:opacity-90 text-primary-foreground font-medium"
+            disabled={loading}
           >
-            {stream ? "Update" : "Add"} Stream
+            {loading ? "Processing..." : (stream ? "Update Stream" : "Add Stream")}
           </Button>
           <Button 
             type="button" 

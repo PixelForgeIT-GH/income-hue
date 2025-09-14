@@ -1,120 +1,60 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TabNavigation } from "@/components/navigation/TabNavigation";
 import { IncomeTab } from "./IncomeTab";
 import { DashboardTab } from "./DashboardTab";
 import { ExpensesTab } from "./ExpensesTab";
-import { IncomeStreamData } from "@/components/income/IncomeStream";
-import { ExpenseData } from "@/components/expenses/ExpenseItem";
-import { useToast } from "@/hooks/use-toast";
+import { AuthPage } from "./AuthPage";
+import { useAuth } from "@/hooks/useAuth";
+import { useIncomeStreams } from "@/hooks/useIncomeStreams";
+import { useExpenses } from "@/hooks/useExpenses";
+import { Button } from "@/components/ui/button";
+import { LogOut, User } from "lucide-react";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [incomeStreams, setIncomeStreams] = useState<IncomeStreamData[]>([]);
-  const [expenses, setExpenses] = useState<ExpenseData[]>([]);
-  const [isFirstTime, setIsFirstTime] = useState(true);
-  const { toast } = useToast();
+  const { user, loading: authLoading, signOut, isAuthenticated } = useAuth();
+  const { 
+    incomeStreams, 
+    addIncomeStream, 
+    updateIncomeStream, 
+    deleteIncomeStream 
+  } = useIncomeStreams(user?.id);
+  const { 
+    expenses, 
+    addExpense, 
+    updateExpense, 
+    deleteExpense 
+  } = useExpenses(user?.id);
 
-  // Check if user has data on first load
-  useEffect(() => {
-    const savedStreams = localStorage.getItem("financeflow-income-streams");
-    const savedExpenses = localStorage.getItem("financeflow-expenses");
-    const hasVisited = localStorage.getItem("financeflow-visited");
-
-    if (savedStreams) {
-      try {
-        const parsed = JSON.parse(savedStreams);
-        const streamsWithDates = parsed.map((stream: any) => ({
-          ...stream,
-          lastPaidDate: new Date(stream.lastPaidDate),
-        }));
-        setIncomeStreams(streamsWithDates);
-      } catch (error) {
-        console.error("Error loading income streams:", error);
-      }
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (!error) {
+      setActiveTab("dashboard");
     }
-
-    if (savedExpenses) {
-      try {
-        setExpenses(JSON.parse(savedExpenses));
-      } catch (error) {
-        console.error("Error loading expenses:", error);
-      }
-    }
-
-    if (hasVisited) {
-      setIsFirstTime(false);
-    } else {
-      localStorage.setItem("financeflow-visited", "true");
-      setActiveTab("income");
-    }
-  }, []);
-
-  // Save data to localStorage
-  useEffect(() => {
-    localStorage.setItem("financeflow-income-streams", JSON.stringify(incomeStreams));
-  }, [incomeStreams]);
-
-  useEffect(() => {
-    localStorage.setItem("financeflow-expenses", JSON.stringify(expenses));
-  }, [expenses]);
-
-  const generateId = () => Math.random().toString(36).substr(2, 9);
-
-  const handleAddIncomeStream = (streamData: Omit<IncomeStreamData, "id">) => {
-    const newStream = { ...streamData, id: generateId() };
-    setIncomeStreams(prev => [...prev, newStream]);
-    toast({
-      title: "Income stream added",
-      description: `${streamData.name} has been added to your income streams.`,
-    });
   };
 
-  const handleEditIncomeStream = (updatedStream: IncomeStreamData) => {
-    setIncomeStreams(prev => 
-      prev.map(stream => stream.id === updatedStream.id ? updatedStream : stream)
+  const handleAuthSuccess = () => {
+    // Auth state will be updated automatically via useAuth hook
+    // Set initial tab for new users
+    setActiveTab("income");
+  };
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
     );
-    toast({
-      title: "Income stream updated",
-      description: `${updatedStream.name} has been updated.`,
-    });
-  };
+  }
 
-  const handleDeleteIncomeStream = (id: string) => {
-    const stream = incomeStreams.find(s => s.id === id);
-    setIncomeStreams(prev => prev.filter(stream => stream.id !== id));
-    toast({
-      title: "Income stream deleted",
-      description: `${stream?.name} has been removed.`,
-    });
-  };
-
-  const handleAddExpense = (expenseData: Omit<ExpenseData, "id">) => {
-    const newExpense = { ...expenseData, id: generateId() };
-    setExpenses(prev => [...prev, newExpense]);
-    toast({
-      title: "Expense added",
-      description: `${expenseData.name} has been added to your expenses.`,
-    });
-  };
-
-  const handleEditExpense = (updatedExpense: ExpenseData) => {
-    setExpenses(prev => 
-      prev.map(expense => expense.id === updatedExpense.id ? updatedExpense : expense)
-    );
-    toast({
-      title: "Expense updated",
-      description: `${updatedExpense.name} has been updated.`,
-    });
-  };
-
-  const handleDeleteExpense = (id: string) => {
-    const expense = expenses.find(e => e.id === id);
-    setExpenses(prev => prev.filter(expense => expense.id !== id));
-    toast({
-      title: "Expense deleted",
-      description: `${expense?.name} has been removed.`,
-    });
-  };
+  // Show auth page if not authenticated
+  if (!isAuthenticated) {
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
+  }
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -122,18 +62,18 @@ const Index = () => {
         return (
           <IncomeTab
             streams={incomeStreams}
-            onAddStream={handleAddIncomeStream}
-            onEditStream={handleEditIncomeStream}
-            onDeleteStream={handleDeleteIncomeStream}
+            onAddStream={addIncomeStream}
+            onEditStream={updateIncomeStream}
+            onDeleteStream={deleteIncomeStream}
           />
         );
       case "expenses":
         return (
           <ExpensesTab
             expenses={expenses}
-            onAddExpense={handleAddExpense}
-            onEditExpense={handleEditExpense}
-            onDeleteExpense={handleDeleteExpense}
+            onAddExpense={addExpense}
+            onEditExpense={updateExpense}
+            onDeleteExpense={deleteExpense}
           />
         );
       case "dashboard":
@@ -149,6 +89,22 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
+          <User className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground truncate max-w-[120px]">
+            {user?.email}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
       {renderActiveTab()}
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
     </div>

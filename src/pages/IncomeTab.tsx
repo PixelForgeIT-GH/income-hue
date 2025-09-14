@@ -6,25 +6,31 @@ import { IncomeStreamForm } from "@/components/forms/IncomeStreamForm";
 
 interface IncomeTabProps {
   streams: IncomeStreamData[];
-  onAddStream: (stream: Omit<IncomeStreamData, "id">) => void;
-  onEditStream: (stream: IncomeStreamData) => void;
-  onDeleteStream: (id: string) => void;
+  onAddStream: (stream: Omit<IncomeStreamData, "id">) => Promise<{ error: any } | undefined>;
+  onEditStream: (stream: IncomeStreamData) => Promise<{ error: any } | undefined>;
+  onDeleteStream: (id: string) => Promise<{ error: any } | undefined>;
 }
 
 export const IncomeTab = ({ streams, onAddStream, onEditStream, onDeleteStream }: IncomeTabProps) => {
   const [showForm, setShowForm] = useState(false);
   const [editingStream, setEditingStream] = useState<IncomeStreamData | null>(null);
 
-  const handleSubmit = (streamData: Omit<IncomeStreamData, "id"> & { id?: string }) => {
+  const handleSubmit = async (streamData: Omit<IncomeStreamData, "id"> & { id?: string }) => {
+    let result;
     if (streamData.id) {
       // Editing existing stream
-      onEditStream(streamData as IncomeStreamData);
+      result = await onEditStream(streamData as IncomeStreamData);
     } else {
       // Adding new stream
-      onAddStream(streamData);
+      result = await onAddStream(streamData);
     }
-    setShowForm(false);
-    setEditingStream(null);
+    
+    if (!result?.error) {
+      setShowForm(false);
+      setEditingStream(null);
+    }
+    
+    return result;
   };
 
   const handleEdit = (stream: IncomeStreamData) => {

@@ -6,25 +6,31 @@ import { ExpenseForm } from "@/components/forms/ExpenseForm";
 
 interface ExpensesTabProps {
   expenses: ExpenseData[];
-  onAddExpense: (expense: Omit<ExpenseData, "id">) => void;
-  onEditExpense: (expense: ExpenseData) => void;
-  onDeleteExpense: (id: string) => void;
+  onAddExpense: (expense: Omit<ExpenseData, "id">) => Promise<{ error: any } | undefined>;
+  onEditExpense: (expense: ExpenseData) => Promise<{ error: any } | undefined>;
+  onDeleteExpense: (id: string) => Promise<{ error: any } | undefined>;
 }
 
 export const ExpensesTab = ({ expenses, onAddExpense, onEditExpense, onDeleteExpense }: ExpensesTabProps) => {
   const [showForm, setShowForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState<ExpenseData | null>(null);
 
-  const handleSubmit = (expenseData: Omit<ExpenseData, "id"> & { id?: string }) => {
+  const handleSubmit = async (expenseData: Omit<ExpenseData, "id"> & { id?: string }) => {
+    let result;
     if (expenseData.id) {
       // Editing existing expense
-      onEditExpense(expenseData as ExpenseData);
+      result = await onEditExpense(expenseData as ExpenseData);
     } else {
       // Adding new expense
-      onAddExpense(expenseData);
+      result = await onAddExpense(expenseData);
     }
-    setShowForm(false);
-    setEditingExpense(null);
+    
+    if (!result?.error) {
+      setShowForm(false);
+      setEditingExpense(null);
+    }
+    
+    return result;
   };
 
   const handleEdit = (expense: ExpenseData) => {
