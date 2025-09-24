@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { IncomeStream, IncomeStreamData } from "@/components/income/IncomeStream";
 import { IncomeStreamForm } from "@/components/forms/IncomeStreamForm";
+import { PaydayCalendar } from "@/components/income/PaydayCalendar";
 
 interface IncomeTabProps {
   streams: IncomeStreamData[];
@@ -89,16 +90,20 @@ export const IncomeTab = ({ streams, onAddStream, onEditStream, onDeleteStream }
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {streams.map((stream) => (
-              <IncomeStream
-                key={stream.id}
-                stream={stream}
-                onEdit={handleEdit}
-                onDelete={onDeleteStream}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4 mb-8">
+              {streams.map((stream) => (
+                <IncomeStream
+                  key={stream.id}
+                  stream={stream}
+                  onEdit={handleEdit}
+                  onDelete={onDeleteStream}
+                />
+              ))}
+            </div>
+            
+            <PaydayCalendar streams={streams} />
+          </>
         )}
       </div>
     </div>
