@@ -9,34 +9,41 @@ interface PaydayCalendarProps {
 }
 
 export const PaydayCalendar = ({ streams }: PaydayCalendarProps) => {
-  // Calculate all paydays for the next 3 months
+  // Calculate all paydays for the calendar's visible range (current month + 2 months before/after)
   const getPaydaysInRange = (startDate: Date, endDate: Date) => {
     const paydays: Date[] = [];
     
     streams.forEach((stream) => {
       let currentDate = new Date(stream.lastPaidDate);
       
-      // Find the first payday on or after startDate
-      while (currentDate < startDate) {
+      // Go back to ensure we capture all paydays in the visible range
+      // Start from a date well before the range to catch all occurrences
+      let searchStartDate = new Date(startDate);
+      searchStartDate.setMonth(searchStartDate.getMonth() - 6); // Go back 6 months to be safe
+      
+      // Find paydays starting from well before our range
+      while (currentDate > searchStartDate) {
         switch (stream.frequency) {
           case "weekly":
-            currentDate = addDays(currentDate, 7);
+            currentDate = addDays(currentDate, -7);
             break;
           case "biweekly":
-            currentDate = addDays(currentDate, 14);
+            currentDate = addDays(currentDate, -14);
             break;
           case "monthly":
-            currentDate = addMonths(currentDate, 1);
+            currentDate = addMonths(currentDate, -1);
             break;
           case "yearly":
-            currentDate = addMonths(currentDate, 1); // For yearly salary, show monthly paydays
+            currentDate = addMonths(currentDate, -1);
             break;
         }
       }
       
-      // Add all paydays within range (including the first one we found)
+      // Now move forward and collect all paydays within our range
       while (currentDate <= endDate) {
-        paydays.push(new Date(currentDate));
+        if (currentDate >= startDate) {
+          paydays.push(new Date(currentDate));
+        }
         
         switch (stream.frequency) {
           case "weekly":
@@ -58,9 +65,11 @@ export const PaydayCalendar = ({ streams }: PaydayCalendarProps) => {
     return paydays;
   };
 
+  // Calculate range to cover the calendar's visible months
   const today = new Date();
-  const rangeEnd = addMonths(today, 3);
-  const paydays = getPaydaysInRange(today, rangeEnd);
+  const rangeStart = new Date(today.getFullYear(), today.getMonth() - 2, 1); // 2 months before current month
+  const rangeEnd = new Date(today.getFullYear(), today.getMonth() + 4, 0); // 3 months after current month
+  const paydays = getPaydaysInRange(rangeStart, rangeEnd);
 
   return (
     <Card className="p-6 shadow-card border-border/50">
@@ -79,13 +88,13 @@ export const PaydayCalendar = ({ streams }: PaydayCalendarProps) => {
             payday: (date) => paydays.some(payday => isSameDay(date, payday))
           }}
           modifiersClassNames={{
-            payday: "relative border-2 border-red-500 rounded-full"
+            payday: "relative border-2 border-income rounded-full bg-income/10"
           }}
         />
       </div>
       <div className="mt-4 text-center">
         <p className="text-sm text-muted-foreground">
-          Red circles indicate upcoming paydays
+          Circles indicate paydays from your income streams
         </p>
       </div>
     </Card>
