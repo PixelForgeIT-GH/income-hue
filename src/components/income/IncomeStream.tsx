@@ -20,16 +20,29 @@ interface IncomeStreamProps {
 export const IncomeStream = ({ stream, onEdit, onDelete }: IncomeStreamProps) => {
   // Calculate next pay date based on frequency
   const getNextPayDate = (lastPaid: Date, frequency: string): Date => {
-    switch (frequency) {
-      case "weekly":
-        return addDays(lastPaid, 7);
-      case "biweekly":
-        return addDays(lastPaid, 14);
-      case "monthly":
-        return addMonths(lastPaid, 1);
-      default:
-        return addMonths(lastPaid, 1);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today for comparison
+    
+    let nextPayDate = new Date(lastPaid);
+    
+    // Keep adding the interval until we get a future date
+    while (nextPayDate <= today) {
+      switch (frequency) {
+        case "weekly":
+          nextPayDate = addDays(nextPayDate, 7);
+          break;
+        case "biweekly":
+          nextPayDate = addDays(nextPayDate, 14);
+          break;
+        case "monthly":
+          nextPayDate = addMonths(nextPayDate, 1);
+          break;
+        default:
+          nextPayDate = addMonths(nextPayDate, 1);
+      }
     }
+    
+    return nextPayDate;
   };
 
   const nextPayDate = getNextPayDate(stream.lastPaidDate, stream.frequency);

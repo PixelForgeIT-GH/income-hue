@@ -16,7 +16,7 @@ export const PaydayCalendar = ({ streams }: PaydayCalendarProps) => {
     streams.forEach((stream) => {
       let currentDate = new Date(stream.lastPaidDate);
       
-      // Find the first payday after startDate
+      // Find the first payday on or after startDate
       while (currentDate < startDate) {
         switch (stream.frequency) {
           case "weekly":
@@ -31,7 +31,7 @@ export const PaydayCalendar = ({ streams }: PaydayCalendarProps) => {
         }
       }
       
-      // Add all paydays within range
+      // Add all paydays within range (including the first one we found)
       while (currentDate <= endDate) {
         paydays.push(new Date(currentDate));
         
