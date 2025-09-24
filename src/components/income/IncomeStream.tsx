@@ -23,9 +23,25 @@ export const IncomeStream = ({ stream, onEdit, onDelete }: IncomeStreamProps) =>
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Start of today for comparison
     
-    let nextPayDate = new Date(lastPaid);
+    // Create a new date from lastPaid to avoid timezone issues
+    let nextPayDate = new Date(lastPaid.getTime());
     
-    // Keep adding the interval until we get a future date
+    // Add the appropriate interval
+    switch (frequency) {
+      case "weekly":
+        nextPayDate = addDays(nextPayDate, 7);
+        break;
+      case "biweekly":
+        nextPayDate = addDays(nextPayDate, 14);
+        break;
+      case "monthly":
+        nextPayDate = addMonths(nextPayDate, 1);
+        break;
+      default:
+        nextPayDate = addMonths(nextPayDate, 1);
+    }
+    
+    // If the calculated date is still in the past, keep adding intervals
     while (nextPayDate <= today) {
       switch (frequency) {
         case "weekly":
