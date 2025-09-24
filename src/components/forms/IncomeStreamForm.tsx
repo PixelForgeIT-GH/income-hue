@@ -15,7 +15,7 @@ interface IncomeStreamFormProps {
 export const IncomeStreamForm = ({ stream, onSubmit, onCancel }: IncomeStreamFormProps) => {
   const [name, setName] = useState(stream?.name || "");
   const [amount, setAmount] = useState(stream?.amount?.toString() || "");
-  const [frequency, setFrequency] = useState<"weekly" | "biweekly" | "monthly">(stream?.frequency || "monthly");
+  const [frequency, setFrequency] = useState<"weekly" | "biweekly" | "monthly" | "yearly">(stream?.frequency || "monthly");
   const [lastPaidDate, setLastPaidDate] = useState(
     stream?.lastPaidDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]
   );
@@ -74,7 +74,7 @@ export const IncomeStreamForm = ({ stream, onSubmit, onCancel }: IncomeStreamFor
 
         <div>
           <Label htmlFor="amount" className="text-sm font-medium text-card-foreground">
-            Amount per Pay
+            {frequency === "yearly" ? "Annual Salary" : "Amount per Pay"}
           </Label>
           <Input
             id="amount"
@@ -93,7 +93,7 @@ export const IncomeStreamForm = ({ stream, onSubmit, onCancel }: IncomeStreamFor
           <Label htmlFor="frequency" className="text-sm font-medium text-card-foreground">
             Pay Frequency
           </Label>
-          <Select value={frequency} onValueChange={(value: "weekly" | "biweekly" | "monthly") => setFrequency(value)}>
+          <Select value={frequency} onValueChange={(value: "weekly" | "biweekly" | "monthly" | "yearly") => setFrequency(value)}>
             <SelectTrigger className="mt-1">
               <SelectValue />
             </SelectTrigger>
@@ -101,6 +101,7 @@ export const IncomeStreamForm = ({ stream, onSubmit, onCancel }: IncomeStreamFor
               <SelectItem value="weekly">Weekly</SelectItem>
               <SelectItem value="biweekly">Bi-weekly (every 2 weeks)</SelectItem>
               <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="yearly">Yearly (enter annual salary)</SelectItem>
             </SelectContent>
           </Select>
         </div>

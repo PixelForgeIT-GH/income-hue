@@ -7,7 +7,7 @@ export interface IncomeStreamData {
   id: string;
   name: string;
   amount: number;
-  frequency: "weekly" | "biweekly" | "monthly";
+  frequency: "weekly" | "biweekly" | "monthly" | "yearly";
   lastPaidDate: Date;
 }
 
@@ -34,11 +34,14 @@ export const IncomeStream = ({ stream, onEdit, onDelete }: IncomeStreamProps) =>
       case "biweekly":
         nextPayDate = addDays(nextPayDate, 14);
         break;
-      case "monthly":
-        nextPayDate = addMonths(nextPayDate, 1);
-        break;
-      default:
-        nextPayDate = addMonths(nextPayDate, 1);
+        case "monthly":
+          nextPayDate = addMonths(nextPayDate, 1);
+          break;
+        case "yearly":
+          nextPayDate = addMonths(nextPayDate, 1); // For yearly, show monthly paydays
+          break;
+        default:
+          nextPayDate = addMonths(nextPayDate, 1);
     }
     
     // If the calculated date is still in the past, keep adding intervals
@@ -52,6 +55,9 @@ export const IncomeStream = ({ stream, onEdit, onDelete }: IncomeStreamProps) =>
           break;
         case "monthly":
           nextPayDate = addMonths(nextPayDate, 1);
+          break;
+        case "yearly":
+          nextPayDate = addMonths(nextPayDate, 1); // For yearly, show monthly paydays
           break;
         default:
           nextPayDate = addMonths(nextPayDate, 1);
@@ -71,9 +77,17 @@ export const IncomeStream = ({ stream, onEdit, onDelete }: IncomeStreamProps) =>
           <h3 className="font-semibold text-card-foreground text-lg">{stream.name}</h3>
           <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
             <span className="font-medium text-income text-lg">
-              ${stream.amount.toLocaleString()}
+              {stream.frequency === "yearly" 
+                ? `$${(stream.amount / 12).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/month`
+                : `$${stream.amount.toLocaleString()}`
+              }
             </span>
-            <span className="capitalize">{stream.frequency}</span>
+            <span className="capitalize">
+              {stream.frequency === "yearly" 
+                ? `${stream.frequency} ($${stream.amount.toLocaleString()} annually)`
+                : stream.frequency
+              }
+            </span>
           </div>
           <div className="flex items-center gap-2 mt-2">
             <Calendar size={14} className="text-muted-foreground" />

@@ -28,6 +28,9 @@ export const PaydayCalendar = ({ streams }: PaydayCalendarProps) => {
           case "monthly":
             currentDate = addMonths(currentDate, 1);
             break;
+          case "yearly":
+            currentDate = addMonths(currentDate, 1); // For yearly salary, show monthly paydays
+            break;
         }
       }
       
@@ -44,6 +47,9 @@ export const PaydayCalendar = ({ streams }: PaydayCalendarProps) => {
             break;
           case "monthly":
             currentDate = addMonths(currentDate, 1);
+            break;
+          case "yearly":
+            currentDate = addMonths(currentDate, 1); // For yearly salary, show monthly paydays
             break;
         }
       }
