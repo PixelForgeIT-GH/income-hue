@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { DollarSign, PieChart, CreditCard } from "lucide-react";
+import { DollarSign, PieChart, CreditCard, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TabNavigationProps {
@@ -12,6 +12,7 @@ const tabs = [
   { id: "income", label: "Income", icon: DollarSign },
   { id: "dashboard", label: "Dashboard", icon: PieChart },
   { id: "expenses", label: "Expenses", icon: CreditCard },
+  { id: "transactions", label: "Transactions", icon: Receipt },
 ];
 
 export const TabNavigation = ({ activeTab, onTabChange }: TabNavigationProps) => {

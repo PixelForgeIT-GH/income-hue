@@ -3,7 +3,9 @@ import { TabNavigation } from "@/components/navigation/TabNavigation";
 import { IncomeTab } from "./IncomeTab";
 import { DashboardTab } from "./DashboardTab";
 import { ExpensesTab } from "./ExpensesTab";
+import { TransactionsTab } from "./TransactionsTab";
 import { AuthPage } from "./AuthPage";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useIncomeStreams } from "@/hooks/useIncomeStreams";
 import { useExpenses } from "@/hooks/useExpenses";
@@ -76,6 +78,8 @@ const Index = () => {
             onDeleteExpense={deleteExpense}
           />
         );
+      case "transactions":
+        return <TransactionsTab />;
       case "dashboard":
       default:
         return (
@@ -90,6 +94,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
+        <ThemeToggle />
         <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
           <User className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm text-muted-foreground truncate max-w-[120px]">
@@ -105,7 +110,9 @@ const Index = () => {
           </Button>
         </div>
       </div>
-      {renderActiveTab()}
+      <div className="container mx-auto px-4 py-6">
+        {renderActiveTab()}
+      </div>
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
