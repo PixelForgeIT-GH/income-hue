@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
 import { useIncomeStreams } from "@/hooks/useIncomeStreams";
 import { useExpenses } from "@/hooks/useExpenses";
+import { useTransactions } from "@/hooks/useTransactions";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 
@@ -27,6 +28,7 @@ const Index = () => {
     updateExpense, 
     deleteExpense 
   } = useExpenses(user?.id);
+  const { transactions } = useTransactions(user?.id);
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -72,10 +74,7 @@ const Index = () => {
       case "expenses":
         return (
           <ExpensesTab
-            expenses={expenses}
-            onAddExpense={addExpense}
-            onEditExpense={updateExpense}
-            onDeleteExpense={deleteExpense}
+            transactions={transactions}
           />
         );
       case "transactions":
@@ -86,6 +85,7 @@ const Index = () => {
           <DashboardTab
             streams={incomeStreams}
             expenses={expenses}
+            transactions={transactions}
           />
         );
     }

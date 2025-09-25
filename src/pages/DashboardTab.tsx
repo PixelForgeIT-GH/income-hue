@@ -2,13 +2,15 @@ import { SimpleFinancialChart } from "@/components/dashboard/SimpleFinancialChar
 import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
 import { IncomeStreamData } from "@/components/income/IncomeStream";
 import { ExpenseData } from "@/components/expenses/ExpenseItem";
+import { TransactionData } from "@/hooks/useTransactions";
 
 interface DashboardTabProps {
   streams: IncomeStreamData[];
   expenses: ExpenseData[];
+  transactions: TransactionData[];
 }
 
-export const DashboardTab = ({ streams, expenses }: DashboardTabProps) => {
+export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabProps) => {
   // Calculate monthly income from all streams
   const calculateMonthlyIncome = () => {
     return streams.reduce((total, stream) => {
@@ -45,9 +47,22 @@ export const DashboardTab = ({ streams, expenses }: DashboardTabProps) => {
     }, 0);
   };
 
+  // Calculate transaction totals
+  const transactionIncome = transactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const transactionExpenses = transactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
   const totalIncome = calculateMonthlyIncome();
   const totalExpenses = calculateMonthlyExpenses();
   const balance = totalIncome - totalExpenses;
+  
+  // Combined totals for chart (recurring + transactions)
+  const combinedIncome = totalIncome + transactionIncome;
+  const combinedExpenses = totalExpenses + transactionExpenses;
 
   return (
     <div className="min-h-screen bg-background pb-24 px-4 pt-6">
@@ -83,10 +98,10 @@ export const DashboardTab = ({ streams, expenses }: DashboardTabProps) => {
               balance={balance}
             />
 
-            {totalIncome > 0 || totalExpenses > 0 ? (
+            {combinedIncome > 0 || combinedExpenses > 0 ? (
               <SimpleFinancialChart
-                income={totalIncome}
-                expenses={totalExpenses}
+                income={combinedIncome}
+                expenses={combinedExpenses}
               />
             ) : (
               <div className="text-center py-8">
