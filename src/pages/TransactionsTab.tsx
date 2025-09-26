@@ -37,14 +37,9 @@ export const TransactionsTab = () => {
     setEditingTransaction(undefined);
   };
 
-  // Calculate totals
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+  // Filter to only expense transactions (one-time costs)
+  const expenseTransactions = transactions.filter(t => t.type === 'expense');
+  const totalExpenses = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
 
   if (!user) {
     return (
@@ -61,48 +56,25 @@ export const TransactionsTab = () => {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Receipt className="text-primary" size={24} />
-            Transactions
+            One-Time Expenses
           </h2>
           <Button 
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2"
           >
             <Plus size={16} />
-            Add Transaction
+            Add Expense
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <TrendingUp className="text-income" size={20} />
-              <span className="text-sm font-medium text-muted-foreground">Total Income</span>
-            </div>
-            <p className="text-2xl font-bold text-income">
-              ${totalIncome.toFixed(2)}
-            </p>
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <TrendingDown className="text-expense" size={20} />
+            <span className="text-sm font-medium text-muted-foreground">One-Time Expenses</span>
           </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <TrendingDown className="text-expense" size={20} />
-              <span className="text-sm font-medium text-muted-foreground">Total Expenses</span>
-            </div>
-            <p className="text-2xl font-bold text-expense">
-              ${totalExpenses.toFixed(2)}
-            </p>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-sm font-medium text-muted-foreground">Net Balance</span>
-            </div>
-            <p className={`text-2xl font-bold ${
-              totalIncome - totalExpenses >= 0 ? 'text-income' : 'text-expense'
-            }`}>
-              ${(totalIncome - totalExpenses).toFixed(2)}
-            </p>
-          </div>
+          <p className="text-2xl font-bold text-expense">
+            ${totalExpenses.toFixed(2)}
+          </p>
         </div>
       </Card>
 
@@ -120,6 +92,7 @@ export const TransactionsTab = () => {
               editingTransaction={editingTransaction}
               categories={categories}
               userId={user.id}
+              fixedType="expense"
             />
           )}
 
@@ -127,21 +100,21 @@ export const TransactionsTab = () => {
             <Card className="p-8 text-center">
               <p className="text-muted-foreground">Loading transactions...</p>
             </Card>
-          ) : transactions.length === 0 ? (
+          ) : expenseTransactions.length === 0 ? (
             <Card className="p-8 text-center space-y-4">
               <Receipt size={64} className="mx-auto text-muted-foreground/50" />
               <div>
-                <p className="text-lg font-medium">No transactions yet</p>
-                <p className="text-muted-foreground">Start tracking your income and expenses</p>
+                <p className="text-lg font-medium">No expense transactions yet</p>
+                <p className="text-muted-foreground">Start tracking your one-time expenses</p>
               </div>
               <Button onClick={() => setShowForm(true)} className="mt-4">
                 <Plus size={16} className="mr-2" />
-                Add Your First Transaction
+                Add Your First Expense
               </Button>
             </Card>
           ) : (
             <div className="space-y-3">
-              {transactions.map((transaction) => (
+              {expenseTransactions.map((transaction) => (
                 <TransactionItem
                   key={transaction.id}
                   transaction={transaction}

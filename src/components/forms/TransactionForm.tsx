@@ -17,6 +17,7 @@ interface TransactionFormProps {
   editingTransaction?: TransactionData;
   categories: CategoryData[];
   userId: string;
+  fixedType?: 'income' | 'expense'; // New prop to fix the type
 }
 
 export const TransactionForm = ({ 
@@ -24,11 +25,12 @@ export const TransactionForm = ({
   onCancel, 
   editingTransaction,
   categories,
-  userId 
+  userId,
+  fixedType
 }: TransactionFormProps) => {
   const [name, setName] = useState(editingTransaction?.name || "");
   const [amount, setAmount] = useState(editingTransaction?.amount?.toString() || "");
-  const [type, setType] = useState<'income' | 'expense'>(editingTransaction?.type || 'expense');
+  const [type, setType] = useState<'income' | 'expense'>(fixedType || editingTransaction?.type || 'expense');
   const [date, setDate] = useState(editingTransaction?.date || new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState(editingTransaction?.notes || "");
   const [categoryId, setCategoryId] = useState(editingTransaction?.category_id || "");
@@ -132,19 +134,21 @@ export const TransactionForm = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label htmlFor="type">Type</Label>
-            <Select value={type} onValueChange={(value: 'income' | 'expense') => setType(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="expense">Expense</SelectItem>
-                <SelectItem value="income">Income</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
+          {!fixedType && (
+            <div>
+              <Label htmlFor="type">Type</Label>
+              <Select value={type} onValueChange={(value: 'income' | 'expense') => setType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="expense">Expense</SelectItem>
+                  <SelectItem value="income">Income</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div>
             <Label htmlFor="date">Date</Label>
             <Input

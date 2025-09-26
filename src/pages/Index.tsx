@@ -72,11 +72,7 @@ const Index = () => {
           />
         );
       case "expenses":
-        return (
-          <ExpensesTab
-            transactions={transactions}
-          />
-        );
+        return <ExpensesTab />;
       case "transactions":
         return <TransactionsTab />;
       case "dashboard":
