@@ -4,9 +4,10 @@ import { Card } from "@/components/ui/card";
 interface SimpleFinancialChartProps {
   income: number;
   expenses: number;
+  transactions: number;
 }
 
-export const SimpleFinancialChart = ({ income, expenses }: SimpleFinancialChartProps) => {
+export const SimpleFinancialChart = ({ income, expenses, transactions }: SimpleFinancialChartProps) => {
   const data = [
     {
       name: "Income",
@@ -18,9 +19,14 @@ export const SimpleFinancialChart = ({ income, expenses }: SimpleFinancialChartP
       value: expenses,
       color: "hsl(var(--expense))",
     },
-  ];
+    {
+      name: "Transactions",
+      value: transactions,
+      color: "hsl(220 91% 56%)", // Blue color
+    },
+  ].filter(item => item.value > 0); // Only show items with values
 
-  const COLORS = ["hsl(var(--income))", "hsl(var(--expense))"];
+  const COLORS = ["hsl(var(--income))", "hsl(var(--expense))", "hsl(220 91% 56%)"];
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {

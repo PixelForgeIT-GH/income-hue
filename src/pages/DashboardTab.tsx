@@ -60,9 +60,9 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
   const totalExpenses = calculateMonthlyExpenses();
   const balance = totalIncome - totalExpenses;
   
-  // Combined totals for chart (recurring + transactions)
+  // Combined totals for chart
   const combinedIncome = totalIncome + transactionIncome;
-  const combinedExpenses = totalExpenses + transactionExpenses;
+  const combinedBalance = combinedIncome - totalExpenses - transactionExpenses;
 
   return (
     <div className="min-h-screen bg-background pb-24 px-4 pt-6">
@@ -98,15 +98,16 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
               balance={balance}
             />
 
-            {combinedIncome > 0 || combinedExpenses > 0 ? (
+            {combinedIncome > 0 || totalExpenses > 0 || transactionExpenses > 0 ? (
               <SimpleFinancialChart
                 income={combinedIncome}
-                expenses={combinedExpenses}
+                expenses={totalExpenses}
+                transactions={transactionExpenses}
               />
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
-                  Add income streams and expenses to see your financial overview chart
+                  Add income streams, expenses, and transactions to see your financial overview chart
                 </p>
               </div>
             )}
