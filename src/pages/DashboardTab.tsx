@@ -96,6 +96,8 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
               totalIncome={totalIncome}
               totalExpenses={totalExpenses}
               balance={balance}
+              transactionIncome={transactionIncome}
+              transactionExpenses={transactionExpenses}
             />
 
             {combinedIncome > 0 || totalExpenses > 0 || transactionExpenses > 0 ? (
@@ -112,8 +114,8 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
               </div>
             )}
 
-            {streams.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {streams.length > 0 && (
                 <div className="bg-card rounded-lg p-6 shadow-card border-border/50">
                   <h3 className="text-lg font-semibold text-card-foreground mb-4">Income Streams</h3>
                   <div className="space-y-3">
@@ -127,24 +129,47 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                     ))}
                   </div>
                 </div>
+              )}
 
-                {expenses.length > 0 && (
-                  <div className="bg-card rounded-lg p-6 shadow-card border-border/50">
-                    <h3 className="text-lg font-semibold text-card-foreground mb-4">Top Expenses</h3>
-                    <div className="space-y-3">
-                      {expenses.slice(0, 5).map((expense) => (
-                        <div key={expense.id} className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">{expense.name}</span>
-                          <span className="text-sm font-medium text-expense">
-                            ${expense.amount.toLocaleString()}/{expense.frequency}
+              {expenses.length > 0 && (
+                <div className="bg-card rounded-lg p-6 shadow-card border-border/50">
+                  <h3 className="text-lg font-semibold text-card-foreground mb-4">Recurring Expenses</h3>
+                  <div className="space-y-3">
+                    {expenses.slice(0, 5).map((expense) => (
+                      <div key={expense.id} className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">{expense.name}</span>
+                        <span className="text-sm font-medium text-expense">
+                          ${expense.amount.toLocaleString()}/{expense.frequency}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {transactions.length > 0 && (
+                <div className="bg-card rounded-lg p-6 shadow-card border-border/50">
+                  <h3 className="text-lg font-semibold text-card-foreground mb-4">Recent Transactions</h3>
+                  <div className="space-y-3">
+                    {transactions.slice(0, 5).map((transaction) => (
+                      <div key={transaction.id} className="flex justify-between items-center">
+                        <div className="flex flex-col">
+                          <span className="text-sm text-muted-foreground">{transaction.name}</span>
+                          <span className="text-xs text-muted-foreground/70">
+                            {new Date(transaction.date).toLocaleDateString()}
                           </span>
                         </div>
-                      ))}
-                    </div>
+                        <span className={`text-sm font-medium ${
+                          transaction.type === 'income' ? 'text-blue-600' : 'text-blue-700'
+                        }`}>
+                          {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
