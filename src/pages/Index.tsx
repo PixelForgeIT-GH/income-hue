@@ -28,7 +28,13 @@ const Index = () => {
     updateExpense, 
     deleteExpense 
   } = useExpenses(user?.id);
-  const { transactions } = useTransactions(user?.id);
+  const { 
+    transactions, 
+    loading: transactionsLoading,
+    addTransaction, 
+    updateTransaction, 
+    deleteTransaction 
+  } = useTransactions(user?.id);
 
   const handleSignOut = async () => {
     const { error } = await signOut();
@@ -74,7 +80,15 @@ const Index = () => {
       case "expenses":
         return <ExpensesTab />;
       case "transactions":
-        return <TransactionsTab />;
+        return (
+          <TransactionsTab 
+            transactions={transactions}
+            loading={transactionsLoading}
+            onAddTransaction={addTransaction}
+            onUpdateTransaction={updateTransaction}
+            onDeleteTransaction={deleteTransaction}
+          />
+        );
       case "dashboard":
       default:
         return (

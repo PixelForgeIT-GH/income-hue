@@ -5,23 +5,36 @@ import { Plus, Receipt, TrendingDown, TrendingUp } from "lucide-react";
 import { TransactionForm } from "@/components/forms/TransactionForm";
 import { TransactionItem } from "@/components/transactions/TransactionItem";
 import { CategoryManager } from "@/components/categories/CategoryManager";
-import { useTransactions, TransactionData } from "@/hooks/useTransactions";
+import { TransactionData } from "@/hooks/useTransactions";
 import { useCategories } from "@/hooks/useCategories";
 import { useAuth } from "@/hooks/useAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const TransactionsTab = () => {
+interface TransactionsTabProps {
+  transactions: TransactionData[];
+  loading: boolean;
+  onAddTransaction: (transactionData: Omit<TransactionData, 'id' | 'user_id'>) => Promise<void>;
+  onUpdateTransaction: (updatedTransaction: TransactionData) => Promise<void>;
+  onDeleteTransaction: (id: string) => Promise<void>;
+}
+
+export const TransactionsTab = ({ 
+  transactions, 
+  loading: transactionsLoading, 
+  onAddTransaction, 
+  onUpdateTransaction, 
+  onDeleteTransaction 
+}: TransactionsTabProps) => {
   const { user } = useAuth();
-  const { transactions, loading: transactionsLoading, addTransaction, updateTransaction, deleteTransaction } = useTransactions(user?.id);
   const { categories, loading: categoriesLoading, addCategory, deleteCategory } = useCategories(user?.id);
   const [showForm, setShowForm] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<TransactionData | undefined>();
 
   const handleSubmit = (transactionData: Omit<TransactionData, 'id' | 'user_id'>) => {
     if (editingTransaction) {
-      updateTransaction({ ...transactionData, id: editingTransaction.id, user_id: user!.id });
+      onUpdateTransaction({ ...transactionData, id: editingTransaction.id, user_id: user!.id });
     } else {
-      addTransaction(transactionData);
+      onAddTransaction(transactionData);
     }
     setShowForm(false);
     setEditingTransaction(undefined);
@@ -120,7 +133,7 @@ export const TransactionsTab = () => {
                   transaction={transaction}
                   categories={categories}
                   onEdit={handleEdit}
-                  onDelete={deleteTransaction}
+                  onDelete={onDeleteTransaction}
                 />
               ))}
             </div>
