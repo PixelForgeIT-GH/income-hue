@@ -78,21 +78,24 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
           <p className="text-muted-foreground">Your finances at a glance</p>
         </div>
 
-        {streams.length === 0 && expenses.length === 0 ? (
+        {streams.length === 0 && expenses.length === 0 && transactions.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-20 h-20 bg-gradient-hero rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-2xl">📊</span>
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-3">Welcome to FinanceFlow!</h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Add your income streams and expenses to see your complete financial picture with beautiful charts and insights.
+              Add your income streams, expenses, and transactions to see your complete financial picture with beautiful charts and insights.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg px-4 py-2">
                 💰 Start with Income tab
               </div>
               <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg px-4 py-2">
-                💳 Then add Expenses
+                💳 Add Expenses
+              </div>
+              <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg px-4 py-2">
+                🧾 Track Transactions
               </div>
             </div>
           </div>
@@ -166,7 +169,7 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                           </span>
                         </div>
                         <span className={`text-sm font-medium ${
-                          transaction.type === 'income' ? 'text-blue-600' : 'text-blue-700'
+                          transaction.type === 'income' ? 'text-income' : 'text-expense'
                         }`}>
                           {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
                         </span>
