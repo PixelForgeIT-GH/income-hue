@@ -1,7 +1,9 @@
+// useIncomeStreams.ts
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { IncomeStreamData } from "@/components/income/IncomeStream";
 import { useToast } from "@/hooks/use-toast";
+import { parseISO } from "date-fns"; // ✅ add this
 
 export const useIncomeStreams = (userId: string | undefined) => {
   const [incomeStreams, setIncomeStreams] = useState<IncomeStreamData[]>([]);
@@ -10,7 +12,7 @@ export const useIncomeStreams = (userId: string | undefined) => {
 
   const fetchIncomeStreams = async () => {
     if (!userId) return;
-    
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -20,15 +22,20 @@ export const useIncomeStreams = (userId: string | undefined) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+// in useIncomeStreams.ts where you map rows:
+const norm = (s: string) =>
+  (s || "").toLowerCase().replace(/\s|_/g, "") === "bi-weekly" ? "biweekly" :
+  (s || "").toLowerCase().includes("week") && !(s || "").toLowerCase().includes("bi") ? "weekly" :
+  (s || "").toLowerCase().includes("bi") ? "biweekly" : "monthly";
 
-      const streamsWithDates: IncomeStreamData[] = data.map((stream: any) => ({
-        id: stream.id,
-        name: stream.name,
-        amount: stream.amount,
-        frequency: stream.frequency as "weekly" | "biweekly" | "monthly",
-        lastPaidDate: new Date(stream.last_paid_date),
-      }));
-      
+const streamsWithDates: IncomeStreamData[] = data.map((row: any) => ({
+  id: row.id,
+  name: row.name,
+  amount: row.amount,
+  frequency: norm(row.frequency) as "weekly" | "biweekly" | "monthly",
+  lastPaidDate: new Date(row.last_paid_date),
+}));
+
       setIncomeStreams(streamsWithDates);
     } catch (error: any) {
       console.error("Error fetching income streams:", error);
@@ -48,13 +55,16 @@ export const useIncomeStreams = (userId: string | undefined) => {
     try {
       const { data, error } = await supabase
         .from("income_streams")
-        .insert([{
-          user_id: userId,
-          name: streamData.name,
-          amount: streamData.amount,
-          frequency: streamData.frequency,
-          last_paid_date: streamData.lastPaidDate.toISOString().split('T')[0],
-        }])
+        .insert([
+          {
+            user_id: userId,
+            name: streamData.name,
+            amount: streamData.amount,
+            frequency: streamData.frequency,
+            // ✅ store YYYY-MM-DD date-only
+            last_paid_date: streamData.lastPaidDate.toISOString().split("T")[0],
+          },
+        ])
         .select()
         .single();
 
@@ -65,16 +75,16 @@ export const useIncomeStreams = (userId: string | undefined) => {
         name: data.name,
         amount: data.amount,
         frequency: data.frequency as "weekly" | "biweekly" | "monthly",
-        lastPaidDate: new Date(data.last_paid_date),
+        lastPaidDate: parseISO(data.last_paid_date), // ✅
       };
-      
-      setIncomeStreams(prev => [newStream, ...prev]);
-      
+
+      setIncomeStreams((prev) => [newStream, ...prev]);
+
       toast({
         title: "Income stream added",
         description: `${streamData.name} has been added to your income streams.`,
       });
-      
+
       return { error: null };
     } catch (error: any) {
       console.error("Error adding income stream:", error);
@@ -97,7 +107,7 @@ export const useIncomeStreams = (userId: string | undefined) => {
           name: updatedStream.name,
           amount: updatedStream.amount,
           frequency: updatedStream.frequency,
-          last_paid_date: updatedStream.lastPaidDate.toISOString().split('T')[0],
+          last_paid_date: updatedStream.lastPaidDate.toISOString().split("T")[0], // ✅
         })
         .eq("id", updatedStream.id)
         .eq("user_id", userId)
@@ -111,18 +121,18 @@ export const useIncomeStreams = (userId: string | undefined) => {
         name: data.name,
         amount: data.amount,
         frequency: data.frequency as "weekly" | "biweekly" | "monthly",
-        lastPaidDate: new Date(data.last_paid_date),
+        lastPaidDate: parseISO(data.last_paid_date), // ✅
       };
-      
-      setIncomeStreams(prev => 
-        prev.map(stream => stream.id === updatedStream.id ? streamWithDate : stream)
+
+      setIncomeStreams((prev) =>
+        prev.map((s) => (s.id === updatedStream.id ? streamWithDate : s))
       );
-      
+
       toast({
         title: "Income stream updated",
         description: `${updatedStream.name} has been updated.`,
       });
-      
+
       return { error: null };
     } catch (error: any) {
       console.error("Error updating income stream:", error);
@@ -138,8 +148,8 @@ export const useIncomeStreams = (userId: string | undefined) => {
   const deleteIncomeStream = async (id: string) => {
     if (!userId) return;
 
-    const stream = incomeStreams.find(s => s.id === id);
-    
+    const stream = incomeStreams.find((s) => s.id === id);
+
     try {
       const { error } = await supabase
         .from("income_streams")
@@ -148,14 +158,14 @@ export const useIncomeStreams = (userId: string | undefined) => {
         .eq("user_id", userId);
 
       if (error) throw error;
-      
-      setIncomeStreams(prev => prev.filter(stream => stream.id !== id));
-      
+
+      setIncomeStreams((prev) => prev.filter((s) => s.id !== id));
+
       toast({
         title: "Income stream deleted",
         description: `${stream?.name} has been removed.`,
       });
-      
+
       return { error: null };
     } catch (error: any) {
       console.error("Error deleting income stream:", error);
