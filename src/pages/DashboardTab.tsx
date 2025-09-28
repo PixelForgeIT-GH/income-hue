@@ -3,6 +3,10 @@ import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
 import { IncomeStreamData } from "@/components/income/IncomeStream";
 import { ExpenseData } from "@/components/expenses/ExpenseItem";
 import { TransactionData } from "@/hooks/useTransactions";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { format, addMonths, subMonths, startOfMonth, isAfter, isSameMonth } from "date-fns";
 
 interface DashboardTabProps {
   streams: IncomeStreamData[];
@@ -11,6 +15,22 @@ interface DashboardTabProps {
 }
 
 export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabProps) => {
+  const [selectedMonth, setSelectedMonth] = useState(new Date());
+
+  // Navigate months
+  const goToPreviousMonth = () => setSelectedMonth(prev => subMonths(prev, 1));
+  const goToNextMonth = () => setSelectedMonth(prev => addMonths(prev, 1));
+  const goToCurrentMonth = () => setSelectedMonth(new Date());
+
+  // Filter expenses that are active in the selected month
+  const getActiveExpensesForMonth = (month: Date) => {
+    return expenses.filter(expense => {
+      const expenseStartDate = new Date(expense.start_date);
+      const monthStart = startOfMonth(month);
+      // Include expense if it starts before or during the selected month
+      return !isAfter(expenseStartDate, monthStart);
+    });
+  };
   // Calculate monthly income from all streams
   const calculateMonthlyIncome = () => {
     return streams.reduce((total, stream) => {
@@ -29,9 +49,10 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
     }, 0);
   };
 
-  // Calculate monthly expenses
+  // Calculate monthly expenses for selected month
   const calculateMonthlyExpenses = () => {
-    return expenses.reduce((total, expense) => {
+    const activeExpenses = getActiveExpensesForMonth(selectedMonth);
+    return activeExpenses.reduce((total, expense) => {
       const monthlyAmount = (() => {
         switch (expense.frequency) {
           case "weekly":
@@ -47,12 +68,16 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
     }, 0);
   };
 
-  // Calculate transaction totals
-  const transactionIncome = transactions
+  // Calculate transaction totals for selected month
+  const selectedMonthTransactions = transactions.filter(t => 
+    isSameMonth(new Date(t.date), selectedMonth)
+  );
+  
+  const transactionIncome = selectedMonthTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const transactionExpenses = transactions
+  const transactionExpenses = selectedMonthTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -74,8 +99,48 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
     <div className="min-h-screen bg-background pb-24 px-4 pt-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground">Financial Dashboard</h1>
-          <p className="text-muted-foreground">Your finances at a glance</p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Financial Dashboard</h1>
+              <p className="text-muted-foreground">Your finances at a glance</p>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToPreviousMonth}
+                className="p-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              
+              <div className="text-center min-w-[140px]">
+                <div className="text-lg font-semibold text-foreground">
+                  {format(selectedMonth, "MMMM yyyy")}
+                </div>
+                {!isSameMonth(selectedMonth, new Date()) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={goToCurrentMonth}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Go to current month
+                  </Button>
+                )}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goToNextMonth}
+                className="p-2"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {streams.length === 0 && expenses.length === 0 && transactions.length === 0 ? (
@@ -140,11 +205,13 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                 </div>
               )}
 
-              {expenses.length > 0 && (
+              {getActiveExpensesForMonth(selectedMonth).length > 0 && (
                 <div className="bg-card rounded-lg p-6 shadow-card border-border/50">
-                  <h3 className="text-lg font-semibold text-card-foreground mb-4">Recurring Expenses</h3>
+                  <h3 className="text-lg font-semibold text-card-foreground mb-4">
+                    Active Expenses ({format(selectedMonth, "MMM yyyy")})
+                  </h3>
                   <div className="space-y-3">
-                    {expenses.slice(0, 5).map((expense) => (
+                    {getActiveExpensesForMonth(selectedMonth).slice(0, 5).map((expense) => (
                       <div key={expense.id} className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">{expense.name}</span>
                         <span className="text-sm font-medium text-expense">
@@ -156,11 +223,13 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                 </div>
               )}
 
-              {transactions.length > 0 && (
+              {selectedMonthTransactions.length > 0 && (
                 <div className="bg-card rounded-lg p-6 shadow-card border-border/50">
-                  <h3 className="text-lg font-semibold text-card-foreground mb-4">Recent Transactions</h3>
+                  <h3 className="text-lg font-semibold text-card-foreground mb-4">
+                    Transactions ({format(selectedMonth, "MMM yyyy")})
+                  </h3>
                   <div className="space-y-3">
-                    {sortedTransactions.slice(0, 5).map((transaction) => (
+                    {selectedMonthTransactions.slice(0, 5).map((transaction) => (
                       <div key={transaction.id} className="flex justify-between items-center">
                         <div className="flex flex-col">
                           <span className="text-sm text-muted-foreground">{transaction.name}</span>

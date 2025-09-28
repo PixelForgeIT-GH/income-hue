@@ -7,6 +7,7 @@ export interface ExpenseData {
   name: string;
   amount: number;
   frequency: "weekly" | "monthly" | "yearly";
+  start_date: string; // ISO date string
 }
 
 interface ExpenseItemProps {
@@ -41,9 +42,13 @@ export const ExpenseItem = ({ expense, onEdit, onDelete }: ExpenseItemProps) => 
               ${expense.amount.toLocaleString()}
             </span>
             <span className="capitalize">{expense.frequency}</span>
+            <div className="flex items-center gap-1">
+              <Calendar size={14} />
+              <span>Starts {new Date(expense.start_date).toLocaleDateString()}</span>
+            </div>
           </div>
           {expense.frequency !== "monthly" && (
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-1">
               <Calendar size={14} className="text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
                 ≈ ${monthlyAmount.toFixed(0)}/month

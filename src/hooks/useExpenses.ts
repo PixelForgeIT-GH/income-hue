@@ -26,6 +26,7 @@ export const useExpenses = (userId: string | undefined) => {
         name: expense.name,
         amount: expense.amount,
         frequency: expense.frequency as "weekly" | "monthly" | "yearly",
+        start_date: expense.start_date,
       }));
       
       setExpenses(typedExpenses);
@@ -52,6 +53,7 @@ export const useExpenses = (userId: string | undefined) => {
           name: expenseData.name,
           amount: expenseData.amount,
           frequency: expenseData.frequency,
+          start_date: expenseData.start_date,
         }])
         .select()
         .single();
@@ -63,6 +65,7 @@ export const useExpenses = (userId: string | undefined) => {
         name: data.name,
         amount: data.amount,
         frequency: data.frequency as "weekly" | "monthly" | "yearly",
+        start_date: data.start_date,
       };
       
       setExpenses(prev => [typedExpense, ...prev]);
@@ -94,6 +97,7 @@ export const useExpenses = (userId: string | undefined) => {
           name: updatedExpense.name,
           amount: updatedExpense.amount,
           frequency: updatedExpense.frequency,
+          start_date: updatedExpense.start_date,
         })
         .eq("id", updatedExpense.id)
         .eq("user_id", userId)
@@ -107,6 +111,7 @@ export const useExpenses = (userId: string | undefined) => {
         name: data.name,
         amount: data.amount,
         frequency: data.frequency as "weekly" | "monthly" | "yearly",
+        start_date: data.start_date,
       };
       
       setExpenses(prev => 

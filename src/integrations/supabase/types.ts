@@ -42,6 +42,7 @@ export type Database = {
           frequency: string
           id: string
           name: string
+          start_date: string
           updated_at: string
           user_id: string
         }
@@ -51,6 +52,7 @@ export type Database = {
           frequency: string
           id?: string
           name: string
+          start_date?: string
           updated_at?: string
           user_id: string
         }
@@ -60,6 +62,7 @@ export type Database = {
           frequency?: string
           id?: string
           name?: string
+          start_date?: string
           updated_at?: string
           user_id?: string
         }
