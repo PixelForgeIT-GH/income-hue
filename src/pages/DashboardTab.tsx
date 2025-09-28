@@ -1,3 +1,4 @@
+// DashboardTab.tsx
 import { SimpleFinancialChart } from "@/components/dashboard/SimpleFinancialChart";
 import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
 import { IncomeStreamData } from "@/components/income/IncomeStream";
@@ -6,7 +7,21 @@ import { TransactionData } from "@/hooks/useTransactions";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { format, addMonths, subMonths, startOfMonth, isAfter, isSameMonth } from "date-fns";
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  isAfter,
+  isBefore,
+  isSameMonth,
+  addDays,
+  lastDayOfMonth,
+  setDate,
+  getDate,
+  startOfDay,
+} from "date-fns";
 
 interface DashboardTabProps {
   streams: IncomeStreamData[];
@@ -14,86 +29,126 @@ interface DashboardTabProps {
   transactions: TransactionData[];
 }
 
+// --- helpers ---------------------------------------------------------
+
+// Make comparisons date-only (avoid DST / time drift)
+const asDateOnly = (d: Date) => startOfDay(d);
+
+// Normalize incoming frequency strings to one of: "weekly" | "biweekly" | "monthly"
+const normalizeFrequency = (raw: string): "weekly" | "biweekly" | "monthly" => {
+  const s = (raw || "").toString().trim().toLowerCase().replace(/\s|_/g, "");
+  if (["w", "wk", "week", "weekly"].includes(s)) return "weekly";
+  if (["biweekly", "bi-weekly", "biweek", "fortnightly", "everytwoweeks", "2w"].includes(s)) return "biweekly";
+  if (["m", "mo", "mon", "month", "monthly"].includes(s)) return "monthly";
+  // fallback: assume monthly rather than miscount
+  return "monthly";
+};
+
+// Count how many times a stream pays within a specific month, based on anchor + frequency
+const occurrencesInMonth = (stream: IncomeStreamData, month: Date): number => {
+  const freq = normalizeFrequency((stream as any).frequency);
+  const monthStart = asDateOnly(startOfMonth(month));
+  const monthEnd = asDateOnly(endOfMonth(month));
+  const anchor = asDateOnly(stream.lastPaidDate);
+
+  if (isAfter(anchor, monthEnd)) return 0;
+
+  if (freq === "monthly") {
+    const day = getDate(anchor);
+    const lastDayNum = getDate(lastDayOfMonth(month));
+    const candidate = asDateOnly(setDate(monthStart, Math.min(day, lastDayNum)));
+    return isBefore(candidate, anchor) ? 0 : 1;
+  }
+
+  // weekly / biweekly
+  const stepDays = freq === "weekly" ? 7 : 14;
+
+  // find first occurrence on/after monthStart
+  let first = new Date(anchor);
+  while (isBefore(first, monthStart)) {
+    first = addDays(first, stepDays);
+  }
+  first = asDateOnly(first);
+
+  if (isAfter(first, monthEnd)) return 0;
+
+  let count = 0;
+  for (let d = first; !isAfter(d, monthEnd); d = asDateOnly(addDays(d, stepDays))) {
+    if (!isBefore(d, anchor)) count += 1;
+  }
+  return count;
+};
+
+// --------------------------------------------------------------------
+
 export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabProps) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
 
-  // Navigate months
-  const goToPreviousMonth = () => setSelectedMonth(prev => subMonths(prev, 1));
-  const goToNextMonth = () => setSelectedMonth(prev => addMonths(prev, 1));
+  // Month navigation
+  const goToPreviousMonth = () => setSelectedMonth((prev) => subMonths(prev, 1));
+  const goToNextMonth = () => setSelectedMonth((prev) => addMonths(prev, 1));
   const goToCurrentMonth = () => setSelectedMonth(new Date());
 
-  // Filter expenses that are active in the selected month
+  // Expenses active in selected month
   const getActiveExpensesForMonth = (month: Date) => {
-    return expenses.filter(expense => {
+    const monthStart = startOfMonth(month);
+    return expenses.filter((expense) => {
       const expenseStartDate = new Date(expense.start_date);
-      const monthStart = startOfMonth(month);
-      // Include expense if it starts before or during the selected month
       return !isAfter(expenseStartDate, monthStart);
     });
   };
-  // Calculate monthly income from all streams
-  const calculateMonthlyIncome = () => {
+
+  // Income for selected month using actual occurrences
+  const calculateMonthlyIncome = (month: Date) => {
     return streams.reduce((total, stream) => {
-      const monthlyAmount = (() => {
-        switch (stream.frequency) {
-          case "weekly":
-            return stream.amount * 4.33; // Average weeks per month
-          case "biweekly":
-            return stream.amount * 2.17; // Average bi-weeks per month
-          case "monthly":
-          default:
-            return stream.amount;
-        }
-      })();
-      return total + monthlyAmount;
+      const n = occurrencesInMonth(
+        { ...stream, frequency: normalizeFrequency((stream as any).frequency) } as IncomeStreamData,
+        month
+      );
+      return total + n * stream.amount;
     }, 0);
   };
 
-  // Calculate monthly expenses for selected month
+  // Expenses (kept as average rules for now)
   const calculateMonthlyExpenses = () => {
     const activeExpenses = getActiveExpensesForMonth(selectedMonth);
     return activeExpenses.reduce((total, expense) => {
-      const monthlyAmount = (() => {
-        switch (expense.frequency) {
-          case "weekly":
-            return expense.amount * 4.33;
-          case "yearly":
-            return expense.amount / 12;
-          case "monthly":
-          default:
-            return expense.amount;
-        }
-      })();
+      const s = (expense.frequency || "").toLowerCase();
+      const monthlyAmount =
+        s === "weekly"
+          ? expense.amount * 4.33
+          : s === "yearly"
+          ? expense.amount / 12
+          : expense.amount;
       return total + monthlyAmount;
     }, 0);
   };
 
-  // Calculate transaction totals for selected month
-  const selectedMonthTransactions = transactions.filter(t => 
+  // Transactions scoped to selected month
+  const selectedMonthTransactions = transactions.filter((t) =>
     isSameMonth(new Date(t.date), selectedMonth)
   );
-  
+
   const transactionIncome = selectedMonthTransactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
-  
-  const transactionExpenses = selectedMonthTransactions
-    .filter(t => t.type === 'expense')
+    .filter((t) => t.type === "income")
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const totalIncome = calculateMonthlyIncome();
+  const transactionExpenses = selectedMonthTransactions
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // Month-aware totals
+  const totalIncome = calculateMonthlyIncome(selectedMonth);
   const totalExpenses = calculateMonthlyExpenses();
-  
-  // Sort transactions by date (most recent first)
-  const sortedTransactions = [...transactions].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  
-  // Balance: Income + Transaction Income - Expenses - Transaction Expenses
+
+  // Balance & chart inputs
   const balance = totalIncome + transactionIncome - totalExpenses - transactionExpenses;
-  
-  // Combined totals for chart
   const combinedIncome = totalIncome + transactionIncome;
+
+  // (optional) recent transactions if you show them elsewhere
+  // const sortedTransactions = [...transactions].sort(
+  //   (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  // );
 
   return (
     <div className="min-h-screen bg-background pb-24 px-4 pt-6">
@@ -104,17 +159,12 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
               <h1 className="text-2xl font-bold text-foreground">Financial Dashboard</h1>
               <p className="text-muted-foreground">Your finances at a glance</p>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToPreviousMonth}
-                className="p-2"
-              >
+              <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="p-2">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
+
               <div className="text-center min-w-[140px]">
                 <div className="text-lg font-semibold text-foreground">
                   {format(selectedMonth, "MMMM yyyy")}
@@ -130,13 +180,8 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                   </Button>
                 )}
               </div>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={goToNextMonth}
-                className="p-2"
-              >
+
+              <Button variant="outline" size="sm" onClick={goToNextMonth} className="p-2">
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
@@ -150,7 +195,8 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-3">Welcome to FinanceFlow!</h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Add your income streams, expenses, and transactions to see your complete financial picture with beautiful charts and insights.
+              Add your income streams, expenses, and transactions to see your complete financial
+              picture with beautiful charts and insights.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg px-4 py-2">
@@ -197,7 +243,8 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                       <div key={stream.id} className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">{stream.name}</span>
                         <span className="text-sm font-medium text-income">
-                          ${stream.amount.toLocaleString()}/{stream.frequency}
+                          ${stream.amount.toLocaleString()}/
+                          {normalizeFrequency((stream as any).frequency)}
                         </span>
                       </div>
                     ))}
@@ -211,14 +258,16 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                     Active Expenses ({format(selectedMonth, "MMM yyyy")})
                   </h3>
                   <div className="space-y-3">
-                    {getActiveExpensesForMonth(selectedMonth).slice(0, 5).map((expense) => (
-                      <div key={expense.id} className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">{expense.name}</span>
-                        <span className="text-sm font-medium text-expense">
-                          ${expense.amount.toLocaleString()}/{expense.frequency}
-                        </span>
-                      </div>
-                    ))}
+                    {getActiveExpensesForMonth(selectedMonth)
+                      .slice(0, 5)
+                      .map((expense) => (
+                        <div key={expense.id} className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">{expense.name}</span>
+                          <span className="text-sm font-medium text-expense">
+                            ${expense.amount.toLocaleString()}/{expense.frequency}
+                          </span>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
@@ -237,10 +286,13 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                             {new Date(transaction.date).toLocaleDateString()}
                           </span>
                         </div>
-                        <span className={`text-sm font-medium ${
-                          transaction.type === 'income' ? 'text-income' : 'text-expense'
-                        }`}>
-                          {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                        <span
+                          className={`text-sm font-medium ${
+                            transaction.type === "income" ? "text-income" : "text-expense"
+                          }`}
+                        >
+                          {transaction.type === "income" ? "+" : "-"}$
+                          {transaction.amount.toLocaleString()}
                         </span>
                       </div>
                     ))}
