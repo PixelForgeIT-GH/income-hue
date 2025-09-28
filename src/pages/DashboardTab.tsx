@@ -58,11 +58,17 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
 
   const totalIncome = calculateMonthlyIncome();
   const totalExpenses = calculateMonthlyExpenses();
-  const balance = totalIncome - totalExpenses;
+  
+  // Sort transactions by date (most recent first)
+  const sortedTransactions = [...transactions].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  // Balance: Income + Transaction Income - Expenses - Transaction Expenses
+  const balance = totalIncome + transactionIncome - totalExpenses - transactionExpenses;
   
   // Combined totals for chart
   const combinedIncome = totalIncome + transactionIncome;
-  const combinedBalance = combinedIncome - totalExpenses - transactionExpenses;
 
   return (
     <div className="min-h-screen bg-background pb-24 px-4 pt-6">
@@ -151,7 +157,7 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
                 <div className="bg-card rounded-lg p-6 shadow-card border-border/50">
                   <h3 className="text-lg font-semibold text-card-foreground mb-4">Recent Transactions</h3>
                   <div className="space-y-3">
-                    {transactions.slice(0, 5).map((transaction) => (
+                    {sortedTransactions.slice(0, 5).map((transaction) => (
                       <div key={transaction.id} className="flex justify-between items-center">
                         <div className="flex flex-col">
                           <span className="text-sm text-muted-foreground">{transaction.name}</span>
