@@ -4,6 +4,7 @@ import { IncomeTab } from "./IncomeTab";
 import { DashboardTab } from "./DashboardTab";
 import { ExpensesTab } from "./ExpensesTab";
 import { TransactionsTab } from "./TransactionsTab";
+import { BankConnectionsTab } from "./BankConnectionsTab";
 import { AuthPage } from "./AuthPage";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
@@ -89,6 +90,8 @@ const Index = () => {
             onDeleteTransaction={deleteTransaction}
           />
         );
+      case "banks":
+        return <BankConnectionsTab />;
       case "dashboard":
       default:
         return (
