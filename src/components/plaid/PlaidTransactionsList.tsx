@@ -8,7 +8,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, Download, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-export const PlaidTransactionsList = () => {
+interface PlaidTransactionsListProps {
+  onTransactionsImported?: () => void;
+}
+
+export const PlaidTransactionsList = ({ onTransactionsImported }: PlaidTransactionsListProps) => {
   const { user } = useAuth();
   const { transactions, loading, refetch } = usePlaidTransactions(user?.id);
   const { importTransactions, loading: importing } = usePlaid();
@@ -41,6 +45,8 @@ export const PlaidTransactionsList = () => {
     if (result) {
       setSelectedIds(new Set());
       refetch();
+      // Refresh the main transactions list
+      onTransactionsImported?.();
     }
   };
 

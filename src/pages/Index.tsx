@@ -34,7 +34,8 @@ const Index = () => {
     loading: transactionsLoading,
     addTransaction, 
     updateTransaction, 
-    deleteTransaction 
+    deleteTransaction,
+    refetch: refetchTransactions
   } = useTransactions(user?.id);
 
   const handleSignOut = async () => {
@@ -91,7 +92,7 @@ const Index = () => {
           />
         );
       case "banks":
-        return <BankConnectionsTab />;
+        return <BankConnectionsTab onTransactionsImported={refetchTransactions} />;
       case "dashboard":
       default:
         return (

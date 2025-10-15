@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { PlaidLink } from "@/components/plaid/PlaidLink";
 import { PlaidTransactionsList } from "@/components/plaid/PlaidTransactionsList";
 import { usePlaid } from "@/hooks/usePlaid";
-import { Building2, RefreshCw, Trash2, Loader2 } from "lucide-react";
+import { usePlaidBalances } from "@/hooks/usePlaidBalances";
+import { useAuth } from "@/hooks/useAuth";
+import { Building2, RefreshCw, Trash2, Loader2, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -19,11 +21,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-export const BankConnectionsTab = () => {
+interface BankConnectionsTabProps {
+  onTransactionsImported?: () => void;
+}
+
+export const BankConnectionsTab = ({ onTransactionsImported }: BankConnectionsTabProps) => {
+  const { user } = useAuth();
   const [accounts, setAccounts] = useState<any>(null);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [syncingItemId, setSyncingItemId] = useState<string | null>(null);
   const { getAccounts, syncTransactions, disconnectBank, loading } = usePlaid();
+  const { totalBalance, loading: balancesLoading } = usePlaidBalances(user?.id);
 
   const loadAccounts = async () => {
     setLoadingAccounts(true);
@@ -86,6 +94,21 @@ export const BankConnectionsTab = () => {
         </div>
         <PlaidLink onSuccess={loadAccounts} />
       </div>
+
+      {accounts && accounts.items && accounts.items.length > 0 && (
+        <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-6 border border-primary/20">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Wallet className="h-5 w-5 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Total Bank Balance</h3>
+          </div>
+          <div className="text-4xl font-bold text-foreground">
+            ${totalBalance.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">Across all connected accounts</p>
+        </div>
+      )}
 
       {accounts && accounts.summary && (
         <Card>
@@ -231,7 +254,7 @@ export const BankConnectionsTab = () => {
       )}
 
       {accounts && accounts.items && accounts.items.length > 0 && (
-        <PlaidTransactionsList />
+        <PlaidTransactionsList onTransactionsImported={onTransactionsImported} />
       )}
 
       <Card>
