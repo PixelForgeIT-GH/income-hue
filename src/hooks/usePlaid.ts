@@ -143,6 +143,35 @@ export const usePlaid = () => {
     }
   };
 
+  const importTransactions = async (transactionIds: string[]) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('import-plaid-transactions', {
+        method: 'POST',
+        body: { transaction_ids: transactionIds },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Import Complete",
+        description: `Imported ${data.imported_count} transaction(s) to your app.`,
+      });
+
+      return data;
+    } catch (error: any) {
+      console.error('Error importing transactions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to import transactions. Please try again.",
+        variant: "destructive",
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     createLinkToken,
@@ -150,5 +179,6 @@ export const usePlaid = () => {
     syncTransactions,
     getAccounts,
     disconnectBank,
+    importTransactions,
   };
 };

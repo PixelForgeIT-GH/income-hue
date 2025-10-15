@@ -5,7 +5,9 @@ import { IncomeStreamData } from "@/components/income/IncomeStream";
 import { ExpenseData } from "@/components/expenses/ExpenseItem";
 import { TransactionData } from "@/hooks/useTransactions";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Wallet } from "lucide-react";
+import { usePlaidBalances } from "@/hooks/usePlaidBalances";
+import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import {
   format,
@@ -83,6 +85,8 @@ const occurrencesInMonth = (stream: IncomeStreamData, month: Date): number => {
 
 export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabProps) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const { user } = useAuth();
+  const { accounts, totalBalance, loading: balancesLoading } = usePlaidBalances(user?.id);
 
   // Month navigation
   const goToPreviousMonth = () => setSelectedMonth((prev) => subMonths(prev, 1));
@@ -212,6 +216,24 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
           </div>
         ) : (
           <div className="space-y-8">
+            {accounts.length > 0 && (
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-6 border border-primary/20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Wallet className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">Connected Banks</h3>
+                    <p className="text-sm text-muted-foreground">{accounts.length} account(s) connected</p>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-foreground">
+                  ${totalBalance.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">Total bank balance</p>
+              </div>
+            )}
+
             <FinancialSummary
               totalIncome={totalIncome}
               totalExpenses={totalExpenses}

@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlaidLink } from "@/components/plaid/PlaidLink";
+import { PlaidTransactionsList } from "@/components/plaid/PlaidTransactionsList";
 import { usePlaid } from "@/hooks/usePlaid";
-import { Building2, RefreshCw, Trash2, Loader2, Download } from "lucide-react";
+import { Building2, RefreshCw, Trash2, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -227,6 +228,10 @@ export const BankConnectionsTab = () => {
             <PlaidLink onSuccess={loadAccounts} />
           </CardContent>
         </Card>
+      )}
+
+      {accounts && accounts.items && accounts.items.length > 0 && (
+        <PlaidTransactionsList />
       )}
 
       <Card>
