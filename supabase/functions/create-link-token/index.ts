@@ -71,7 +71,6 @@ serve(async (req) => {
         products: ['transactions'],
         country_codes: ['CA'], // Canada only for PIPEDA compliance
         language: 'en',
-        webhook: '', // Optional: Add webhook URL for updates
       }),
     });
 
