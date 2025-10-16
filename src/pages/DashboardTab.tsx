@@ -134,10 +134,6 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
     isSameMonth(new Date(t.date), selectedMonth)
   );
 
-  const transactionIncome = selectedMonthTransactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-
   const transactionExpenses = selectedMonthTransactions
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + t.amount, 0);
@@ -146,9 +142,9 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
   const totalIncome = calculateMonthlyIncome(selectedMonth);
   const totalExpenses = calculateMonthlyExpenses();
 
-  // Balance & chart inputs
-  const balance = totalIncome + transactionIncome - totalExpenses - transactionExpenses;
-  const combinedIncome = totalIncome + transactionIncome;
+  // Balance & chart inputs (transactions are expenses only)
+  const balance = totalIncome - totalExpenses - transactionExpenses;
+  const combinedIncome = totalIncome;
 
   // (optional) recent transactions if you show them elsewhere
   // const sortedTransactions = [...transactions].sort(
@@ -238,7 +234,6 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
               totalIncome={totalIncome}
               totalExpenses={totalExpenses}
               balance={balance}
-              transactionIncome={transactionIncome}
               transactionExpenses={transactionExpenses}
             />
 

@@ -6,7 +6,7 @@ import { PlaidTransactionsList } from "@/components/plaid/PlaidTransactionsList"
 import { usePlaid } from "@/hooks/usePlaid";
 import { usePlaidBalances } from "@/hooks/usePlaidBalances";
 import { useAuth } from "@/hooks/useAuth";
-import { Building2, RefreshCw, Trash2, Loader2, Eye, EyeOff } from "lucide-react";
+import { Building2, RefreshCw, Trash2, Loader2, Eye, EyeOff, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -33,6 +33,9 @@ export const ProfilePage = ({ onTransactionsImported }: ProfilePageProps) => {
   const [accounts, setAccounts] = useState<any>(null);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [syncingItemId, setSyncingItemId] = useState<string | null>(null);
+  const [localAccountVisibility, setLocalAccountVisibility] = useState<Record<string, boolean>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const { getAccounts, syncTransactions, disconnectBank, loading } = usePlaid();
   const { accounts: plaidAccounts, refetch: refetchBalances } = usePlaidBalances(user?.id);
 
@@ -41,6 +44,14 @@ export const ProfilePage = ({ onTransactionsImported }: ProfilePageProps) => {
     const data = await getAccounts();
     if (data) {
       setAccounts(data);
+      // Initialize local state with current values
+      const visibilityMap: Record<string, boolean> = {};
+      data.items?.forEach((item: any) => {
+        item.accounts?.forEach((account: any) => {
+          visibilityMap[account.id] = account.show_on_dashboard;
+        });
+      });
+      setLocalAccountVisibility(visibilityMap);
     }
     setLoadingAccounts(false);
   };
@@ -64,19 +75,36 @@ export const ProfilePage = ({ onTransactionsImported }: ProfilePageProps) => {
     }
   };
 
-  const handleToggleDashboardDisplay = async (accountId: string, currentValue: boolean) => {
-    const { error } = await supabase
-      .from('plaid_accounts')
-      .update({ show_on_dashboard: !currentValue })
-      .eq('id', accountId);
+  const handleToggleDashboardDisplay = (accountId: string) => {
+    setLocalAccountVisibility(prev => ({
+      ...prev,
+      [accountId]: !prev[accountId]
+    }));
+    setHasUnsavedChanges(true);
+  };
 
-    if (error) {
-      toast.error("Failed to update dashboard display");
-      console.error(error);
-    } else {
-      toast.success(`Account ${!currentValue ? 'added to' : 'removed from'} dashboard`);
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    try {
+      // Update all accounts with new visibility settings
+      const updates = Object.entries(localAccountVisibility).map(([accountId, showOnDashboard]) =>
+        supabase
+          .from('plaid_accounts')
+          .update({ show_on_dashboard: showOnDashboard })
+          .eq('id', accountId)
+      );
+
+      await Promise.all(updates);
+      
+      toast.success("Dashboard preferences saved");
+      setHasUnsavedChanges(false);
       await loadAccounts();
       refetchBalances();
+    } catch (error) {
+      toast.error("Failed to save preferences");
+      console.error(error);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -112,6 +140,12 @@ export const ProfilePage = ({ onTransactionsImported }: ProfilePageProps) => {
             Manage your bank connections and preferences
           </p>
         </div>
+        {hasUnsavedChanges && (
+          <Button onClick={handleSaveChanges} disabled={isSaving} className="gap-2">
+            <Save className="h-4 w-4" />
+            {isSaving ? "Saving..." : "Save Changes"}
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -180,10 +214,10 @@ export const ProfilePage = ({ onTransactionsImported }: ProfilePageProps) => {
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch
-                                checked={account.show_on_dashboard}
-                                onCheckedChange={() => handleToggleDashboardDisplay(account.id, account.show_on_dashboard)}
+                                checked={localAccountVisibility[account.id] ?? account.show_on_dashboard}
+                                onCheckedChange={() => handleToggleDashboardDisplay(account.id)}
                               />
-                              {account.show_on_dashboard ? (
+                              {(localAccountVisibility[account.id] ?? account.show_on_dashboard) ? (
                                 <Eye className="h-4 w-4 text-primary" />
                               ) : (
                                 <EyeOff className="h-4 w-4 text-muted-foreground" />

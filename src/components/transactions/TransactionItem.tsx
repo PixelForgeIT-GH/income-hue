@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Image, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Edit, Trash2, Image, ArrowDownCircle } from "lucide-react";
 import { TransactionData } from "@/hooks/useTransactions";
 import { CategoryData } from "@/hooks/useCategories";
 import { format } from "date-fns";
@@ -26,15 +26,8 @@ export const TransactionItem = ({
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <div className={`p-1 rounded-full ${
-              transaction.type === 'income' 
-                ? 'bg-income/20 text-income' 
-                : 'bg-expense/20 text-expense'
-            }`}>
-              {transaction.type === 'income' 
-                ? <ArrowUpCircle size={16} /> 
-                : <ArrowDownCircle size={16} />
-              }
+            <div className="p-1 rounded-full bg-expense/20 text-expense">
+              <ArrowDownCircle size={16} />
             </div>
             <div>
               <h4 className="font-medium text-foreground">{transaction.name}</h4>
@@ -45,10 +38,8 @@ export const TransactionItem = ({
           </div>
           
           <div className="flex items-center gap-2 mb-2">
-            <span className={`text-lg font-semibold ${
-              transaction.type === 'income' ? 'text-income' : 'text-expense'
-            }`}>
-              {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
+            <span className="text-lg font-semibold text-expense">
+              -${transaction.amount.toFixed(2)}
             </span>
             
             {category && (

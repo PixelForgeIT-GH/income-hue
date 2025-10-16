@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { TabNavigation } from "@/components/navigation/TabNavigation";
+import { ProfileMenu } from "@/components/navigation/ProfileMenu";
 import { IncomeTab } from "./IncomeTab";
 import { DashboardTab } from "./DashboardTab";
 import { ExpensesTab } from "./ExpensesTab";
@@ -11,8 +12,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIncomeStreams } from "@/hooks/useIncomeStreams";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useTransactions } from "@/hooks/useTransactions";
-import { Button } from "@/components/ui/button";
-import { LogOut, User, Settings } from "lucide-react";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -38,12 +37,6 @@ const Index = () => {
     refetch: refetchTransactions
   } = useTransactions(user?.id);
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (!error) {
-      setActiveTab("dashboard");
-    }
-  };
 
   const handleAuthSuccess = () => {
     // Auth state will be updated automatically via useAuth hook
@@ -109,29 +102,10 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
         <ThemeToggle />
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setActiveTab("profile")}
-          className="h-9 px-3 gap-2"
-        >
-          <Settings className="h-4 w-4" />
-          <span className="hidden sm:inline">Profile</span>
-        </Button>
-        <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
-          <User className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground truncate max-w-[120px]">
-            {user?.email}
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleSignOut}
-            className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
+        <ProfileMenu 
+          onNavigateToProfile={() => setActiveTab("profile")}
+          onNavigateToPlaid={() => setActiveTab("profile")}
+        />
       </div>
       <div className="container mx-auto px-4 py-6">
         {renderActiveTab()}

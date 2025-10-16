@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { DollarSign, PieChart, CreditCard, Receipt, Building2 } from "lucide-react";
+import { DollarSign, PieChart, CreditCard, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface TabNavigationProps {

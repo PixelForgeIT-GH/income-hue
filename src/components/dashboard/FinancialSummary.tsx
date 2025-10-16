@@ -5,11 +5,15 @@ interface FinancialSummaryProps {
   totalIncome: number;
   totalExpenses: number;
   balance: number;
-  transactionIncome: number;
   transactionExpenses: number;
 }
 
-export const FinancialSummary = ({ totalIncome, totalExpenses, balance, transactionIncome, transactionExpenses }: FinancialSummaryProps) => {
+export const FinancialSummary = ({ 
+  totalIncome, 
+  totalExpenses, 
+  balance,
+  transactionExpenses 
+}: FinancialSummaryProps) => {
   const isPositive = balance >= 0;
 
   return (
@@ -71,38 +75,21 @@ export const FinancialSummary = ({ totalIncome, totalExpenses, balance, transact
         </Card>
       </div>
 
-      {(transactionIncome > 0 || transactionExpenses > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="p-4 shadow-card border-border/50 bg-gradient-to-br from-blue-500/10 to-blue-500/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Transaction Income</p>
-                <p className="text-xl font-bold text-blue-600">
-                  ${transactionIncome.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-2 bg-blue-500/20 rounded-full">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-              </div>
+      {transactionExpenses > 0 && (
+        <Card className="p-4 shadow-card border-border/50 bg-gradient-to-br from-blue-600/10 to-blue-600/5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">One-Time Expenses</p>
+              <p className="text-xl font-bold text-blue-700">
+                ${transactionExpenses.toLocaleString()}
+              </p>
             </div>
-          </Card>
-
-          <Card className="p-4 shadow-card border-border/50 bg-gradient-to-br from-blue-600/10 to-blue-600/5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Transaction Expenses</p>
-                <p className="text-xl font-bold text-blue-700">
-                  ${transactionExpenses.toLocaleString()}
-                </p>
-              </div>
-              <div className="p-2 bg-blue-600/20 rounded-full">
-                <TrendingDown className="h-5 w-5 text-blue-700" />
-              </div>
+            <div className="p-2 bg-blue-600/20 rounded-full">
+              <TrendingDown className="h-5 w-5 text-blue-700" />
             </div>
-          </Card>
-        </div>
+          </div>
+        </Card>
       )}
     </div>
-
   );
 };
