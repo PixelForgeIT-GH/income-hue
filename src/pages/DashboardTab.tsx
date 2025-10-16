@@ -5,8 +5,11 @@ import { IncomeStreamData } from "@/components/income/IncomeStream";
 import { ExpenseData } from "@/components/expenses/ExpenseItem";
 import { TransactionData } from "@/hooks/useTransactions";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ChevronLeft, ChevronRight, Wallet } from "lucide-react";
 import { useState } from "react";
+import { usePlaidBalances } from "@/hooks/usePlaidBalances";
+import { useAuth } from "@/hooks/useAuth";
 import {
   format,
   addMonths,
@@ -82,7 +85,9 @@ const occurrencesInMonth = (stream: IncomeStreamData, month: Date): number => {
 // --------------------------------------------------------------------
 
 export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabProps) => {
+  const { user } = useAuth();
   const [selectedMonth, setSelectedMonth] = useState(new Date());
+  const { totalBalance: plaidTotalBalance, accounts: plaidAccounts, loading: plaidLoading } = usePlaidBalances(user?.id);
 
   // Month navigation
   const goToPreviousMonth = () => setSelectedMonth((prev) => subMonths(prev, 1));
@@ -187,6 +192,23 @@ export const DashboardTab = ({ streams, expenses, transactions }: DashboardTabPr
             </div>
           </div>
         </div>
+
+        {plaidAccounts.length > 0 && (
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Wallet className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Bank Balance</h3>
+            </div>
+            <div className="text-4xl font-bold text-foreground">
+              ${plaidTotalBalance.toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">
+              {plaidAccounts.length} account{plaidAccounts.length !== 1 ? 's' : ''} displayed
+            </p>
+          </Card>
+        )}
 
         {streams.length === 0 && expenses.length === 0 && transactions.length === 0 ? (
           <div className="text-center py-16">

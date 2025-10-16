@@ -113,6 +113,7 @@ export type Database = {
           name: string
           official_name: string | null
           plaid_item_id: string
+          show_on_dashboard: boolean
           subtype: string | null
           type: string
           updated_at: string
@@ -129,6 +130,7 @@ export type Database = {
           name: string
           official_name?: string | null
           plaid_item_id: string
+          show_on_dashboard?: boolean
           subtype?: string | null
           type: string
           updated_at?: string
@@ -145,6 +147,7 @@ export type Database = {
           name?: string
           official_name?: string | null
           plaid_item_id?: string
+          show_on_dashboard?: boolean
           subtype?: string | null
           type?: string
           updated_at?: string

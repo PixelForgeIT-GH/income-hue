@@ -4,7 +4,7 @@ import { IncomeTab } from "./IncomeTab";
 import { DashboardTab } from "./DashboardTab";
 import { ExpensesTab } from "./ExpensesTab";
 import { TransactionsTab } from "./TransactionsTab";
-import { BankConnectionsTab } from "./BankConnectionsTab";
+import { ProfilePage } from "./ProfilePage";
 import { AuthPage } from "./AuthPage";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,7 +12,7 @@ import { useIncomeStreams } from "@/hooks/useIncomeStreams";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useTransactions } from "@/hooks/useTransactions";
 import { Button } from "@/components/ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Settings } from "lucide-react";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -91,8 +91,8 @@ const Index = () => {
             onDeleteTransaction={deleteTransaction}
           />
         );
-      case "banks":
-        return <BankConnectionsTab onTransactionsImported={refetchTransactions} />;
+      case "profile":
+        return <ProfilePage onTransactionsImported={refetchTransactions} />;
       case "dashboard":
       default:
         return (
@@ -109,6 +109,15 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
         <ThemeToggle />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setActiveTab("profile")}
+          className="h-9 px-3 gap-2"
+        >
+          <Settings className="h-4 w-4" />
+          <span className="hidden sm:inline">Profile</span>
+        </Button>
         <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg px-3 py-2">
           <User className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm text-muted-foreground truncate max-w-[120px]">

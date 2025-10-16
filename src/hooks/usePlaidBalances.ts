@@ -26,7 +26,8 @@ export const usePlaidBalances = (userId: string | undefined) => {
       const { data, error } = await supabase
         .from('plaid_accounts')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .eq('show_on_dashboard', true);
 
       if (error) throw error;
 
