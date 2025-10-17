@@ -273,23 +273,50 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accent_color: string | null
           created_at: string
+          dashboard_expense_color: string | null
+          dashboard_income_color: string | null
           display_name: string | null
+          first_name: string | null
           id: string
+          last_name: string | null
+          phone_number: string | null
+          preferred_currency: string | null
+          primary_color: string | null
+          secondary_color: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          accent_color?: string | null
           created_at?: string
+          dashboard_expense_color?: string | null
+          dashboard_income_color?: string | null
           display_name?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
+          phone_number?: string | null
+          preferred_currency?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          accent_color?: string | null
           created_at?: string
+          dashboard_expense_color?: string | null
+          dashboard_income_color?: string | null
           display_name?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
+          phone_number?: string | null
+          preferred_currency?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string
           user_id?: string
         }

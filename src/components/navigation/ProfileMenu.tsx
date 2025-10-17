@@ -10,11 +10,11 @@ import { User, Settings, Building2, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ProfileMenuProps {
-  onNavigateToProfile: () => void;
-  onNavigateToPlaid: () => void;
+  onNavigateToSettings: () => void;
+  onNavigateToBanks: () => void;
 }
 
-export const ProfileMenu = ({ onNavigateToProfile, onNavigateToPlaid }: ProfileMenuProps) => {
+export const ProfileMenu = ({ onNavigateToSettings, onNavigateToBanks }: ProfileMenuProps) => {
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -40,13 +40,13 @@ export const ProfileMenu = ({ onNavigateToProfile, onNavigateToPlaid }: ProfileM
           <p className="font-medium truncate">{user?.email}</p>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onNavigateToProfile} className="cursor-pointer">
+        <DropdownMenuItem onClick={onNavigateToSettings} className="cursor-pointer">
           <Settings className="mr-2 h-4 w-4" />
           <span>Profile & Settings</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={onNavigateToPlaid} className="cursor-pointer">
+        <DropdownMenuItem onClick={onNavigateToBanks} className="cursor-pointer">
           <Building2 className="mr-2 h-4 w-4" />
-          <span>Connect Bank</span>
+          <span>Bank Connections</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

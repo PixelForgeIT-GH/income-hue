@@ -5,7 +5,8 @@ import { IncomeTab } from "./IncomeTab";
 import { DashboardTab } from "./DashboardTab";
 import { ExpensesTab } from "./ExpensesTab";
 import { TransactionsTab } from "./TransactionsTab";
-import { ProfilePage } from "./ProfilePage";
+import { BankConnectionsPage } from "./BankConnectionsPage";
+import { SettingsPage } from "./SettingsPage";
 import { AuthPage } from "./AuthPage";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,8 +85,10 @@ const Index = () => {
             onDeleteTransaction={deleteTransaction}
           />
         );
-      case "profile":
-        return <ProfilePage onTransactionsImported={refetchTransactions} />;
+      case "banks":
+        return <BankConnectionsPage onTransactionsImported={refetchTransactions} />;
+      case "settings":
+        return <SettingsPage />;
       case "dashboard":
       default:
         return (
@@ -103,8 +106,8 @@ const Index = () => {
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
         <ThemeToggle />
         <ProfileMenu 
-          onNavigateToProfile={() => setActiveTab("profile")}
-          onNavigateToPlaid={() => setActiveTab("profile")}
+          onNavigateToSettings={() => setActiveTab("settings")}
+          onNavigateToBanks={() => setActiveTab("banks")}
         />
       </div>
       <div className="container mx-auto px-4 py-6">

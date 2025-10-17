@@ -6,7 +6,7 @@ import { PlaidTransactionsList } from "@/components/plaid/PlaidTransactionsList"
 import { usePlaid } from "@/hooks/usePlaid";
 import { usePlaidBalances } from "@/hooks/usePlaidBalances";
 import { useAuth } from "@/hooks/useAuth";
-import { Building2, RefreshCw, Trash2, Loader2, Eye, EyeOff, Save } from "lucide-react";
+import { Building2, RefreshCw, Trash2, Loader2, Eye, EyeOff, Save, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -24,11 +24,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface ProfilePageProps {
+interface BankConnectionsPageProps {
   onTransactionsImported?: () => void;
 }
 
-export const ProfilePage = ({ onTransactionsImported }: ProfilePageProps) => {
+export const BankConnectionsPage = ({ onTransactionsImported }: BankConnectionsPageProps) => {
   const { user } = useAuth();
   const [accounts, setAccounts] = useState<any>(null);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
@@ -123,6 +123,54 @@ export const ProfilePage = ({ onTransactionsImported }: ProfilePageProps) => {
     });
   };
 
+  const exportTransactionsToCSV = async () => {
+    try {
+      const { data: transactions, error } = await supabase
+        .from('plaid_transactions')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      if (!transactions || transactions.length === 0) {
+        toast.error("No transactions to export");
+        return;
+      }
+
+      // Create CSV content
+      const headers = ['Date', 'Merchant', 'Amount', 'Category', 'Account', 'Pending', 'Imported'];
+      const csvContent = [
+        headers.join(','),
+        ...transactions.map(t => [
+          t.date,
+          `"${t.merchant_name || t.name}"`,
+          t.amount,
+          `"${t.category?.join(', ') || ''}"`,
+          t.plaid_account_id,
+          t.pending ? 'Yes' : 'No',
+          t.imported_to_app ? 'Yes' : 'No'
+        ].join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Transactions exported successfully");
+    } catch (error) {
+      console.error("Error exporting transactions:", error);
+      toast.error("Failed to export transactions");
+    }
+  };
+
   if (loadingAccounts) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -135,17 +183,23 @@ export const ProfilePage = ({ onTransactionsImported }: ProfilePageProps) => {
     <div className="space-y-6 pb-24">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold">Profile & Settings</h2>
+          <h2 className="text-3xl font-bold">Bank Connections</h2>
           <p className="text-muted-foreground mt-1">
-            Manage your bank connections and preferences
+            Manage your bank connections and transactions
           </p>
         </div>
-        {hasUnsavedChanges && (
-          <Button onClick={handleSaveChanges} disabled={isSaving} className="gap-2">
-            <Save className="h-4 w-4" />
-            {isSaving ? "Saving..." : "Save Changes"}
+        <div className="flex gap-2">
+          {hasUnsavedChanges && (
+            <Button onClick={handleSaveChanges} disabled={isSaving} className="gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? "Saving..." : "Save Changes"}
+            </Button>
+          )}
+          <Button onClick={exportTransactionsToCSV} variant="outline" className="gap-2">
+            <Download className="h-4 w-4" />
+            Export CSV
           </Button>
-        )}
+        </div>
       </div>
 
       <Card>
