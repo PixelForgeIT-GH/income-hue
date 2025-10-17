@@ -13,10 +13,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIncomeStreams } from "@/hooks/useIncomeStreams";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useThemeCustomization } from "@/hooks/useThemeCustomization";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { user, loading: authLoading, signOut, isAuthenticated } = useAuth();
+  useThemeCustomization(); // Apply custom theme colors
   const { 
     incomeStreams, 
     addIncomeStream, 

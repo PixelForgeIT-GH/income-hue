@@ -154,24 +154,120 @@ export const SettingsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="income_color">Income Chart Color</Label>
-              <Input
-                id="income_color"
-                type="color"
-                value={settings.dashboard_income_color.match(/hsl\((\d+)/)?.[0]?.replace('hsl(', '#') || "#22c55e"}
-                onChange={(e) => setSettings({ ...settings, dashboard_income_color: `hsl(${e.target.value})` })}
-                className="h-10"
-              />
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="income_color"
+                  type="color"
+                  value={(() => {
+                    // Extract hex from HSL string
+                    const match = settings.dashboard_income_color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+                    if (match) {
+                      const [, h, s, l] = match.map(Number);
+                      // Convert HSL to hex for color picker
+                      const hslToHex = (h: number, s: number, l: number) => {
+                        l /= 100;
+                        const a = s * Math.min(l, 1 - l) / 100;
+                        const f = (n: number) => {
+                          const k = (n + h / 30) % 12;
+                          const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                          return Math.round(255 * color).toString(16).padStart(2, '0');
+                        };
+                        return `#${f(0)}${f(8)}${f(4)}`;
+                      };
+                      return hslToHex(h, s, l);
+                    }
+                    return "#22c55e";
+                  })()}
+                  onChange={(e) => {
+                    const hex = e.target.value;
+                    const r = parseInt(hex.slice(1, 3), 16) / 255;
+                    const g = parseInt(hex.slice(3, 5), 16) / 255;
+                    const b = parseInt(hex.slice(5, 7), 16) / 255;
+                    const max = Math.max(r, g, b);
+                    const min = Math.min(r, g, b);
+                    let h = 0, s = 0, l = (max + min) / 2;
+                    if (max !== min) {
+                      const d = max - min;
+                      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                      switch (max) {
+                        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                        case g: h = ((b - r) / d + 2) / 6; break;
+                        case b: h = ((r - g) / d + 4) / 6; break;
+                      }
+                    }
+                    h = Math.round(h * 360);
+                    s = Math.round(s * 100);
+                    l = Math.round(l * 100);
+                    setSettings({ ...settings, dashboard_income_color: `hsl(${h}, ${s}%, ${l}%)` });
+                  }}
+                  className="h-10 w-20"
+                />
+                <Input
+                  type="text"
+                  value={settings.dashboard_income_color}
+                  onChange={(e) => setSettings({ ...settings, dashboard_income_color: e.target.value })}
+                  placeholder="hsl(142, 76%, 36%)"
+                  className="flex-1"
+                />
+              </div>
               <p className="text-xs text-muted-foreground mt-1">Color for income bars on charts</p>
             </div>
             <div>
               <Label htmlFor="expense_color">Expense Chart Color</Label>
-              <Input
-                id="expense_color"
-                type="color"
-                value={settings.dashboard_expense_color.match(/hsl\((\d+)/)?.[0]?.replace('hsl(', '#') || "#ef4444"}
-                onChange={(e) => setSettings({ ...settings, dashboard_expense_color: `hsl(${e.target.value})` })}
-                className="h-10"
-              />
+              <div className="flex gap-2 items-center">
+                <Input
+                  id="expense_color"
+                  type="color"
+                  value={(() => {
+                    const match = settings.dashboard_expense_color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+                    if (match) {
+                      const [, h, s, l] = match.map(Number);
+                      const hslToHex = (h: number, s: number, l: number) => {
+                        l /= 100;
+                        const a = s * Math.min(l, 1 - l) / 100;
+                        const f = (n: number) => {
+                          const k = (n + h / 30) % 12;
+                          const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                          return Math.round(255 * color).toString(16).padStart(2, '0');
+                        };
+                        return `#${f(0)}${f(8)}${f(4)}`;
+                      };
+                      return hslToHex(h, s, l);
+                    }
+                    return "#ef4444";
+                  })()}
+                  onChange={(e) => {
+                    const hex = e.target.value;
+                    const r = parseInt(hex.slice(1, 3), 16) / 255;
+                    const g = parseInt(hex.slice(3, 5), 16) / 255;
+                    const b = parseInt(hex.slice(5, 7), 16) / 255;
+                    const max = Math.max(r, g, b);
+                    const min = Math.min(r, g, b);
+                    let h = 0, s = 0, l = (max + min) / 2;
+                    if (max !== min) {
+                      const d = max - min;
+                      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                      switch (max) {
+                        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                        case g: h = ((b - r) / d + 2) / 6; break;
+                        case b: h = ((r - g) / d + 4) / 6; break;
+                      }
+                    }
+                    h = Math.round(h * 360);
+                    s = Math.round(s * 100);
+                    l = Math.round(l * 100);
+                    setSettings({ ...settings, dashboard_expense_color: `hsl(${h}, ${s}%, ${l}%)` });
+                  }}
+                  className="h-10 w-20"
+                />
+                <Input
+                  type="text"
+                  value={settings.dashboard_expense_color}
+                  onChange={(e) => setSettings({ ...settings, dashboard_expense_color: e.target.value })}
+                  placeholder="hsl(0, 84%, 60%)"
+                  className="flex-1"
+                />
+              </div>
               <p className="text-xs text-muted-foreground mt-1">Color for expense bars on charts</p>
             </div>
           </div>
