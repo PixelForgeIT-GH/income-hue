@@ -285,6 +285,9 @@ export type Database = {
           preferred_currency: string | null
           primary_color: string | null
           secondary_color: string | null
+          subscription_expires_at: string | null
+          subscription_id: string | null
+          subscription_status: string | null
           updated_at: string
           user_id: string
         }
@@ -301,6 +304,9 @@ export type Database = {
           preferred_currency?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          subscription_expires_at?: string | null
+          subscription_id?: string | null
+          subscription_status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -317,7 +323,58 @@ export type Database = {
           preferred_currency?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          subscription_expires_at?: string | null
+          subscription_id?: string | null
+          subscription_status?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          amount_cents: number
+          cancelled_at: string | null
+          created_at: string | null
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan_type: string
+          square_customer_id: string | null
+          square_subscription_id: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          cancelled_at?: string | null
+          created_at?: string | null
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_type?: string
+          square_customer_id?: string | null
+          square_subscription_id?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          cancelled_at?: string | null
+          created_at?: string | null
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan_type?: string
+          square_customer_id?: string | null
+          square_subscription_id?: string | null
+          status?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
