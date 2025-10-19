@@ -14,11 +14,15 @@ import { useIncomeStreams } from "@/hooks/useIncomeStreams";
 import { useExpenses } from "@/hooks/useExpenses";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useThemeCustomization } from "@/hooks/useThemeCustomization";
+import { useSubscription } from "@/hooks/useSubscription";
+import { SubscriptionBanner } from "@/components/subscription/SubscriptionBanner";
+import { FeatureGate } from "@/components/subscription/FeatureGate";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { user, loading: authLoading, signOut, isAuthenticated } = useAuth();
   useThemeCustomization(); // Apply custom theme colors
+  const { isPro, isFree, loading: subLoading } = useSubscription(user?.id);
   const { 
     incomeStreams, 
     addIncomeStream, 
@@ -73,32 +77,42 @@ const Index = () => {
             onAddStream={addIncomeStream}
             onEditStream={updateIncomeStream}
             onDeleteStream={deleteIncomeStream}
+            isPro={isPro}
           />
         );
       case "expenses":
         return <ExpensesTab />;
       case "transactions":
         return (
-          <TransactionsTab 
-            transactions={transactions}
-            loading={transactionsLoading}
-            onAddTransaction={addTransaction}
-            onUpdateTransaction={updateTransaction}
-            onDeleteTransaction={deleteTransaction}
-          />
+          <FeatureGate isPro={isPro} featureName="Manual Transactions">
+            <TransactionsTab 
+              transactions={transactions}
+              loading={transactionsLoading}
+              onAddTransaction={addTransaction}
+              onUpdateTransaction={updateTransaction}
+              onDeleteTransaction={deleteTransaction}
+            />
+          </FeatureGate>
         );
       case "banks":
-        return <BankConnectionsPage onTransactionsImported={refetchTransactions} />;
+        return (
+          <FeatureGate isPro={isPro} featureName="Bank Account Linking">
+            <BankConnectionsPage onTransactionsImported={refetchTransactions} />
+          </FeatureGate>
+        );
       case "settings":
         return <SettingsPage />;
       case "dashboard":
       default:
         return (
-          <DashboardTab
-            streams={incomeStreams}
-            expenses={expenses}
-            transactions={transactions}
-          />
+          <>
+            {isFree && !subLoading && <SubscriptionBanner />}
+            <DashboardTab
+              streams={incomeStreams}
+              expenses={expenses}
+              transactions={transactions}
+            />
+          </>
         );
     }
   };

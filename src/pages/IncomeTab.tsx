@@ -4,17 +4,24 @@ import { Plus } from "lucide-react";
 import { IncomeStream, IncomeStreamData } from "@/components/income/IncomeStream";
 import { IncomeStreamForm } from "@/components/forms/IncomeStreamForm";
 import { PaydayCalendar } from "@/components/income/PaydayCalendar";
+import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 interface IncomeTabProps {
   streams: IncomeStreamData[];
   onAddStream: (stream: Omit<IncomeStreamData, "id">) => Promise<{ error: any } | undefined>;
   onEditStream: (stream: IncomeStreamData) => Promise<{ error: any } | undefined>;
   onDeleteStream: (id: string) => Promise<{ error: any } | undefined>;
+  isPro: boolean;
 }
 
-export const IncomeTab = ({ streams, onAddStream, onEditStream, onDeleteStream }: IncomeTabProps) => {
+export const IncomeTab = ({ streams, onAddStream, onEditStream, onDeleteStream, isPro }: IncomeTabProps) => {
   const [showForm, setShowForm] = useState(false);
   const [editingStream, setEditingStream] = useState<IncomeStreamData | null>(null);
+  const navigate = useNavigate();
+
+  // Free users can only have 1 income stream
+  const canAddStream = isPro || streams.length === 0;
 
   const handleSubmit = async (streamData: Omit<IncomeStreamData, "id"> & { id?: string }) => {
     let result;
@@ -52,7 +59,7 @@ export const IncomeTab = ({ streams, onAddStream, onEditStream, onDeleteStream }
             <h1 className="text-2xl font-bold text-foreground">Income Streams</h1>
             <p className="text-muted-foreground">Manage your recurring income sources</p>
           </div>
-          {!showForm && (
+          {!showForm && canAddStream && (
             <Button
               onClick={() => setShowForm(true)}
               className="bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-soft"
@@ -62,6 +69,23 @@ export const IncomeTab = ({ streams, onAddStream, onEditStream, onDeleteStream }
             </Button>
           )}
         </div>
+
+        {/* Free tier limit message */}
+        {!isPro && streams.length >= 1 && (
+          <Card className="p-4 mb-4 bg-muted border-primary/20">
+            <p className="text-sm text-muted-foreground">
+              You've reached the free plan limit of 1 income stream.{" "}
+              <Button 
+                variant="link" 
+                className="p-0 h-auto text-primary"
+                onClick={() => navigate('/upgrade')}
+              >
+                Upgrade to Pro
+              </Button>{" "}
+              to add unlimited income streams.
+            </p>
+          </Card>
+        )}
 
         {showForm && (
           <div className="mb-6">
