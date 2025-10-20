@@ -35,6 +35,89 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          owner_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          owner_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          owner_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      employees: {
+        Row: {
+          biweekly_rate: number | null
+          company_id: string
+          created_at: string | null
+          email: string
+          first_name: string
+          hourly_rate: number | null
+          id: string
+          is_active: boolean | null
+          last_name: string
+          rate_type: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+          user_id: string | null
+          weekly_rate: number | null
+        }
+        Insert: {
+          biweekly_rate?: number | null
+          company_id: string
+          created_at?: string | null
+          email: string
+          first_name: string
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_name: string
+          rate_type?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          user_id?: string | null
+          weekly_rate?: number | null
+        }
+        Update: {
+          biweekly_rate?: number | null
+          company_id?: string
+          created_at?: string | null
+          email?: string
+          first_name?: string
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_name?: string
+          rate_type?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+          user_id?: string | null
+          weekly_rate?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employees_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
@@ -67,6 +150,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      forecasts: {
+        Row: {
+          actual_cost: number | null
+          actual_hours: number | null
+          company_id: string
+          created_at: string | null
+          forecasted_cost: number
+          forecasted_hours: number
+          id: string
+          notes: string | null
+          period_end: string
+          period_start: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_cost?: number | null
+          actual_hours?: number | null
+          company_id: string
+          created_at?: string | null
+          forecasted_cost: number
+          forecasted_hours: number
+          id?: string
+          notes?: string | null
+          period_end: string
+          period_start: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_cost?: number | null
+          actual_hours?: number | null
+          company_id?: string
+          created_at?: string | null
+          forecasted_cost?: number
+          forecasted_hours?: number
+          id?: string
+          notes?: string | null
+          period_end?: string
+          period_start?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forecasts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       income_streams: {
         Row: {
@@ -274,6 +407,8 @@ export type Database = {
       profiles: {
         Row: {
           accent_color: string | null
+          business_seats: number | null
+          company_id: string | null
           created_at: string
           dashboard_expense_color: string | null
           dashboard_income_color: string | null
@@ -293,6 +428,8 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          business_seats?: number | null
+          company_id?: string | null
           created_at?: string
           dashboard_expense_color?: string | null
           dashboard_income_color?: string | null
@@ -312,6 +449,8 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          business_seats?: number | null
+          company_id?: string | null
           created_at?: string
           dashboard_expense_color?: string | null
           dashboard_income_color?: string | null
@@ -329,7 +468,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -341,6 +488,8 @@ export type Database = {
           current_period_start: string | null
           id: string
           plan_type: string
+          price_per_seat: number | null
+          seats: number | null
           square_customer_id: string | null
           square_subscription_id: string | null
           status: string
@@ -356,6 +505,8 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           plan_type?: string
+          price_per_seat?: number | null
+          seats?: number | null
           square_customer_id?: string | null
           square_subscription_id?: string | null
           status?: string
@@ -371,6 +522,8 @@ export type Database = {
           current_period_start?: string | null
           id?: string
           plan_type?: string
+          price_per_seat?: number | null
+          seats?: number | null
           square_customer_id?: string | null
           square_subscription_id?: string | null
           status?: string
@@ -378,6 +531,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      time_entries: {
+        Row: {
+          clock_in: string
+          clock_out: string | null
+          company_id: string
+          created_at: string | null
+          employee_id: string
+          hours_worked: number | null
+          id: string
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          clock_in: string
+          clock_out?: string | null
+          company_id: string
+          created_at?: string | null
+          employee_id: string
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          clock_in?: string
+          clock_out?: string | null
+          company_id?: string
+          created_at?: string | null
+          employee_id?: string
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -437,7 +641,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "supervisor" | "employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -564,6 +768,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["supervisor", "employee"],
+    },
   },
 } as const
