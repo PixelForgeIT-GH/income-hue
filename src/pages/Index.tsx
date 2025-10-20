@@ -124,12 +124,13 @@ const Index = () => {
         <ProfileMenu 
           onNavigateToSettings={() => setActiveTab("settings")}
           onNavigateToBanks={() => setActiveTab("banks")}
+          isPro={isPro}
         />
       </div>
       <div className="container mx-auto px-4 py-6">
         {renderActiveTab()}
       </div>
-      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} isPro={isPro} />
     </div>
   );
 };

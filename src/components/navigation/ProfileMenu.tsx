@@ -6,16 +6,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Settings, Building2, LogOut } from "lucide-react";
+import { User, Settings, Building2, LogOut, Crown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 interface ProfileMenuProps {
   onNavigateToSettings: () => void;
   onNavigateToBanks: () => void;
+  isPro?: boolean;
 }
 
-export const ProfileMenu = ({ onNavigateToSettings, onNavigateToBanks }: ProfileMenuProps) => {
+export const ProfileMenu = ({ onNavigateToSettings, onNavigateToBanks, isPro = false }: ProfileMenuProps) => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
@@ -36,10 +40,27 @@ export const ProfileMenu = ({ onNavigateToSettings, onNavigateToBanks }: Profile
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-card border-border z-50">
         <div className="px-2 py-1.5 text-sm">
-          <p className="text-xs text-muted-foreground">Signed in as</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs text-muted-foreground">Signed in as</p>
+            {isPro && (
+              <Badge variant="default" className="text-xs">
+                <Crown className="h-3 w-3 mr-1" />
+                Pro
+              </Badge>
+            )}
+          </div>
           <p className="font-medium truncate">{user?.email}</p>
         </div>
         <DropdownMenuSeparator />
+        {!isPro && (
+          <>
+            <DropdownMenuItem onClick={() => navigate('/upgrade')} className="cursor-pointer text-primary">
+              <Crown className="mr-2 h-4 w-4" />
+              <span>Upgrade to Pro</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem onClick={onNavigateToSettings} className="cursor-pointer">
           <Settings className="mr-2 h-4 w-4" />
           <span>Profile & Settings</span>
