@@ -6,10 +6,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { User, Settings, Building2, LogOut, Crown } from "lucide-react";
+import { User, Settings, Building2, LogOut, Crown, Briefcase } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { useSupervisorStatus } from "@/hooks/useSupervisorStatus";
 
 interface ProfileMenuProps {
   onNavigateToSettings: () => void;
@@ -20,6 +21,7 @@ interface ProfileMenuProps {
 export const ProfileMenu = ({ onNavigateToSettings, onNavigateToBanks, isPro = false }: ProfileMenuProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { isSupervisor } = useSupervisorStatus(user?.id);
 
   const handleSignOut = async () => {
     await signOut();
@@ -69,6 +71,12 @@ export const ProfileMenu = ({ onNavigateToSettings, onNavigateToBanks, isPro = f
           <Building2 className="mr-2 h-4 w-4" />
           <span>Bank Connections</span>
         </DropdownMenuItem>
+        {isSupervisor && isPro && (
+          <DropdownMenuItem onClick={() => navigate('/business')} className="cursor-pointer">
+            <Briefcase className="mr-2 h-4 w-4" />
+            <span>Business Portal</span>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}
