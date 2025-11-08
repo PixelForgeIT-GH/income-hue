@@ -27,7 +27,7 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<"personal" | "business">("personal");
   const { user, loading: authLoading, signOut, isAuthenticated } = useAuth();
   useThemeCustomization(); // Apply custom theme colors
-  const { isPro, isFree, loading: subLoading } = useSubscription(user?.id);
+  const { isPro, isBusiness, isFree, loading: subLoading } = useSubscription(user?.id);
   const { isSupervisor, loading: supervisorLoading } = useSupervisorStatus(user?.id);
   const { 
     incomeStreams, 
@@ -74,7 +74,7 @@ const Index = () => {
     return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
 
-  const showModeToggle = isSupervisor && isPro;
+  const showModeToggle = isSupervisor && isBusiness;
 
   if (showModeToggle && viewMode === "business") {
     return <BusinessPortal />;

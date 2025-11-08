@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-export type SubscriptionStatus = 'free' | 'pro' | 'cancelled';
+export type SubscriptionStatus = 'free' | 'pro' | 'business' | 'cancelled';
 
 export const useSubscription = (userId: string | undefined) => {
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>('free');
   const [loading, setLoading] = useState(true);
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const [businessSeats, setBusinessSeats] = useState<number>(0);
   const { toast } = useToast();
 
   const fetchSubscriptionStatus = async () => {
@@ -19,7 +20,7 @@ export const useSubscription = (userId: string | undefined) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('subscription_status, subscription_id')
+        .select('subscription_status, subscription_id, business_seats')
         .eq('user_id', userId)
         .single();
 
@@ -27,6 +28,7 @@ export const useSubscription = (userId: string | undefined) => {
 
       setSubscriptionStatus((data?.subscription_status as SubscriptionStatus) || 'free');
       setSubscriptionId(data?.subscription_id || null);
+      setBusinessSeats(data?.business_seats || 0);
     } catch (error) {
       console.error('Error fetching subscription status:', error);
       toast({
@@ -56,6 +58,7 @@ export const useSubscription = (userId: string | undefined) => {
         (payload: any) => {
           setSubscriptionStatus(payload.new.subscription_status || 'free');
           setSubscriptionId(payload.new.subscription_id || null);
+          setBusinessSeats(payload.new.business_seats || 0);
         }
       )
       .subscribe();
@@ -65,7 +68,8 @@ export const useSubscription = (userId: string | undefined) => {
     };
   }, [userId]);
 
-  const isPro = subscriptionStatus === 'pro';
+  const isPro = subscriptionStatus === 'pro' || subscriptionStatus === 'business';
+  const isBusiness = subscriptionStatus === 'business' || businessSeats > 0;
   const isFree = subscriptionStatus === 'free' || subscriptionStatus === 'cancelled';
 
   const createSubscription = async (email: string, priceId: string) => {
@@ -130,6 +134,7 @@ export const useSubscription = (userId: string | undefined) => {
     subscriptionStatus,
     loading,
     isPro,
+    isBusiness,
     isFree,
     createSubscription,
     cancelSubscription,
