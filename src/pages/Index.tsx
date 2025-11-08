@@ -17,18 +17,12 @@ import { useThemeCustomization } from "@/hooks/useThemeCustomization";
 import { useSubscription } from "@/hooks/useSubscription";
 import { SubscriptionBanner } from "@/components/subscription/SubscriptionBanner";
 import { FeatureGate } from "@/components/subscription/FeatureGate";
-import { useSupervisorStatus } from "@/hooks/useSupervisorStatus";
-import { BusinessPortal } from "./business/BusinessPortal";
-import { Button } from "@/components/ui/button";
-import { Briefcase, Wallet } from "lucide-react";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [viewMode, setViewMode] = useState<"personal" | "business">("personal");
   const { user, loading: authLoading, signOut, isAuthenticated } = useAuth();
   useThemeCustomization(); // Apply custom theme colors
-  const { isPro, isBusiness, isFree, loading: subLoading } = useSubscription(user?.id);
-  const { isSupervisor, loading: supervisorLoading } = useSupervisorStatus(user?.id);
+  const { isPro, isFree, loading: subLoading } = useSubscription(user?.id);
   const { 
     incomeStreams, 
     addIncomeStream, 
@@ -58,7 +52,7 @@ const Index = () => {
   };
 
   // Show loading while checking authentication
-  if (authLoading || supervisorLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -72,12 +66,6 @@ const Index = () => {
   // Show auth page if not authenticated
   if (!isAuthenticated) {
     return <AuthPage onAuthSuccess={handleAuthSuccess} />;
-  }
-
-  const showModeToggle = isSupervisor && isBusiness;
-
-  if (showModeToggle && viewMode === "business") {
-    return <BusinessPortal />;
   }
 
   const renderActiveTab = () => {
@@ -132,28 +120,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-        {showModeToggle && (
-          <div className="flex gap-1 p-1 bg-muted rounded-lg">
-            <Button
-              variant={viewMode === "personal" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("personal")}
-              className="gap-2"
-            >
-              <Wallet className="h-4 w-4" />
-              Personal
-            </Button>
-            <Button
-              variant={viewMode === "business" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("business")}
-              className="gap-2"
-            >
-              <Briefcase className="h-4 w-4" />
-              Business
-            </Button>
-          </div>
-        )}
         <ThemeToggle />
         <ProfileMenu 
           onNavigateToSettings={() => setActiveTab("settings")}
